@@ -1,4 +1,4 @@
-# Trakt Trending Discord Bot
+# Utah DABC Discord Bot
 
 This bot will once a day post Utah DABC limited and Allocated Whiskeys to Discord.
 

@@ -1,4 +1,4 @@
-from dabc import from_allocated_to_discord, from_limited_to_discord, whiskey_allocated, whiskey_limited
+from dabc import from_product_to_Embeds, whiskey_allocated, whiskey_limited
 from discord import send_discord
 from time import sleep
 from os import getenv
@@ -22,13 +22,15 @@ for var in envVars:
 
 def allocated():
   whiskeyList = whiskey_allocated()
-  embedList = from_allocated_to_discord(whiskeyList)
-  send_discord('Allocated', embedList=embedList)
+  for whiskey in whiskeyList:
+    embedList = from_product_to_Embeds(whiskey)
+    send_discord('Allocated', embedList=embedList)
 
 def limited():
   whiskeyList = whiskey_limited()
-  contentStr = from_limited_to_discord(whiskeyList)
-  send_discord('Limited', contentStr=contentStr)
+  for whiskey in whiskeyList:
+    embedList = from_product_to_Embeds(whiskey)
+    send_discord('Limited', embedList)
 
 def parse_args(args):
   parser = argparse.ArgumentParser(description='Bot')

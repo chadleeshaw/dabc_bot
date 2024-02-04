@@ -21,15 +21,17 @@ for var in envVars:
         raise Exception(f"Missing env variable: {var}")
 
 def allocated():
+  color = random_color()
   whiskeyList = whiskey_allocated()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey, random_color())
+    embedList = from_product_to_Embeds(whiskey, color)
     send_discord('Allocated', embedList=embedList)
 
 def limited():
+  color = random_color()
   whiskeyList = whiskey_limited()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey, random_color())
+    embedList = from_product_to_Embeds(whiskey, color)
     send_discord('Limited', embedList)
 
 def parse_args(args):

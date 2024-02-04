@@ -1,6 +1,7 @@
 from functools import reduce
 from discord import Embeds
 from logs import my_logger
+from operator import itemgetter
 import requests
 
 logger = my_logger(__name__)
@@ -64,6 +65,8 @@ def whiskey_allocated() -> list[dict]:
     laFinal = list(filter(in_store, laList))
 
     completeList = awFinal + laFinal
+
+    completeList.sort(key=itemgetter('name'))
 
     return completeList
 

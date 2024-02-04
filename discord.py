@@ -29,15 +29,15 @@ class Embeds:
       title = product.get('name'),
       fields = [
         Fields(
-          name = 'StoreQty:',
-          value = str(product.get('storeQty')),
-          inline = True,
-        ),
-        Fields(
           name = 'Price:',
           value = str(product.get('currentPrice')),
           inline = True,
         ),
+        Fields(
+          name = 'StoreQty:',
+          value = str(product.get('storeQty')),
+          inline = True,
+        )
       ]
     )
 

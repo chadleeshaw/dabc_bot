@@ -1,5 +1,5 @@
 from dabc import from_product_to_Embeds, whiskey_allocated, whiskey_limited
-from discord import send_discord
+from discord import send_discord, random_color
 from time import sleep
 from os import getenv
 from sys import argv
@@ -23,13 +23,13 @@ for var in envVars:
 def allocated():
   whiskeyList = whiskey_allocated()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey)
+    embedList = from_product_to_Embeds(whiskey, random_color())
     send_discord('Allocated', embedList=embedList)
 
 def limited():
   whiskeyList = whiskey_limited()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey)
+    embedList = from_product_to_Embeds(whiskey, random_color())
     send_discord('Limited', embedList)
 
 def parse_args(args):

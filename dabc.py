@@ -54,7 +54,7 @@ def in_store(product: dict) -> bool:
             return True
     return False
 
-def whiskey_allocated():
+def whiskey_allocated() -> list[dict]:
     awReq= submit_dabc_query()
     awList = handle_product_request(awReq)
     awFinal = list(filter(in_store, awList))
@@ -67,13 +67,13 @@ def whiskey_allocated():
 
     return completeList
 
-def whiskey_limited():
+def whiskey_limited() -> list[dict]:
     dabcReq = submit_dabc_query(status='L')
     rawList = handle_product_request(dabcReq)
     whiskeyList = list(filter(in_store, rawList))
 
     return whiskeyList
 
-def from_product_to_Embeds(product: dict) -> list[Embeds]:
-    embed = Embeds.from_product(product)
+def from_product_to_Embeds(product: dict, color: str) -> list[Embeds]:
+    embed = Embeds.from_product(product, color)
     return [embed]

@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from os import environ as env
 from logs import my_logger
 import requests
+import random
 import json
 
 
@@ -19,24 +20,20 @@ class Embeds:
   fields: list[Fields]
 
   @classmethod
-  def from_product(cls: classmethod, product: dict, color='15838749') -> object:
+  def from_product(cls: classmethod, product: dict, color: str='15838749') -> object:
     sku = product.get('sku')
     return cls(
       color = color,
       url = f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}',
       title = product.get('name'),
-      fields = [Fields(
-          name = 'Name:',
-          value = product.get('name'),
-          inline = True,
-        ),
+      fields = [
         Fields(
-          name = 'StoreQty',
+          name = 'StoreQty:',
           value = str(product.get('storeQty')),
           inline = True,
         ),
         Fields(
-          name = 'Price',
+          name = 'Price:',
           value = str(product.get('currentPrice')),
           inline = True,
         ),
@@ -48,6 +45,12 @@ class Discord:
   username: str
   content: str 
   embeds: list[Embeds]
+
+def random_color() -> str:
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
 def send_discord(type: str, embedList: list[Embeds]) -> None:
   logger = my_logger(__name__)

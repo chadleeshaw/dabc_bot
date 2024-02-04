@@ -3,6 +3,7 @@ from os import environ as env
 from logs import my_logger
 import requests
 import random
+import discord
 import json
 
 
@@ -50,7 +51,7 @@ def random_color() -> str:
     r = random.randint(0, 255)
     g = random.randint(0, 255)
     b = random.randint(0, 255)
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+    return str((r * 256 * 256) + (g * 256) + b)
 
 def send_discord(type: str, embedList: list[Embeds]) -> None:
   logger = my_logger(__name__)

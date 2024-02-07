@@ -3,7 +3,6 @@ from os import environ as env
 from logs import my_logger
 import requests
 import random
-import discord
 import json
 
 

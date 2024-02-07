@@ -13,3 +13,6 @@ def my_logger(name: str) -> logging:
     logger.setLevel(log_level)
     
     return logger
+
+if __name__ == "__main__":
+    pass

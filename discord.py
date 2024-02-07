@@ -16,8 +16,8 @@ class Fields:
 @dataclass
 class Embeds:
   color: str
-  title: str
   url: str
+  title: str
   fields: list[Fields]
 
   @classmethod
@@ -39,6 +39,15 @@ class Embeds:
           inline = True,
         )
       ]
+    )
+
+  @classmethod
+  def from_drawings(cls: classmethod, color: str='15838749'):
+    return cls(
+      color = color,
+      url = 'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts',
+      title = 'Drawing(s) Detected on DABC Website',
+      fields = None
     )
 
 @dataclass
@@ -75,3 +84,6 @@ def send_discord(type: str, embedList: list[Embeds]) -> None:
     logger.error(err)
   else:
     logger.info("Discord message sent successfully, code {}.".format(discord_req.status_code))
+
+if __name__ == "__main__":
+    pass

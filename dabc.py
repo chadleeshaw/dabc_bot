@@ -1,4 +1,4 @@
-from functools import reduce
+from bs4 import BeautifulSoup
 from discord import Embeds
 from logs import my_logger
 from operator import itemgetter
@@ -55,6 +55,23 @@ def in_store(product: dict) -> bool:
             return True
     return False
 
+def is_drawings() -> bool:
+    futureDrawing = True
+    currentDrawing = True
+    url= f'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts'
+    dabcReq = dabc_request('GET', url, None)
+
+    soup = BeautifulSoup(dabcReq.text, 'html.parser')
+    future = soup.find_all('div', id = 'future')
+    current = soup.find_all('div', id = 'current')
+
+    if 'No Future' in str(future[0]):
+        futureDrawing = False
+    if 'No Current' in str(current[0]):
+        currentDrawing = False
+
+    return True if futureDrawing or currentDrawing else False
+
 def whiskey_allocated() -> list[dict]:
     awReq= submit_dabc_query()
     awList = handle_product_request(awReq)
@@ -77,6 +94,14 @@ def whiskey_limited() -> list[dict]:
 
     return whiskeyList
 
+def dabc_drawings() -> list[Embeds]:
+    if is_drawings():
+        return [Embeds.from_drawings()]
+    return []
+
 def from_product_to_Embeds(product: dict, color: str) -> list[Embeds]:
     embed = Embeds.from_product(product, color)
     return [embed]
+
+if __name__ == "__main__":
+    pass

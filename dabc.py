@@ -72,7 +72,7 @@ def is_drawings() -> bool:
 
     return True if futureDrawing or currentDrawing else False
 
-def whiskey_allocated() -> list[dict]:
+def whiskey_allocated() -> list[list[dict]]:
     awReq= submit_dabc_query()
     awList = handle_product_request(awReq)
     awFinal = list(filter(in_store, awList))
@@ -85,23 +85,28 @@ def whiskey_allocated() -> list[dict]:
 
     completeList.sort(key=itemgetter('name'))
 
-    return completeList
+    return [completeList[i::10] for i in range(10)]
 
-def whiskey_limited() -> list[dict]:
+def whiskey_limited() -> list[list[dict]]:
     dabcReq = submit_dabc_query(status='L')
     rawList = handle_product_request(dabcReq)
     whiskeyList = list(filter(in_store, rawList))
 
-    return whiskeyList
+    whiskeyList.sort(key=itemgetter('name'))
+
+    return [whiskeyList[i::10] for i in range(10)]
 
 def dabc_drawings() -> list[Embeds]:
     if is_drawings():
         return [Embeds.from_drawings()]
     return []
 
-def from_product_to_Embeds(product: dict, color: str) -> list[Embeds]:
-    embed = Embeds.from_product(product, color)
-    return [embed]
+def from_productList_to_Embeds(productList: list[dict], color: str) -> list[Embeds]:
+    embedList = []
+    for product in productList:
+        embedList.append(Embeds.from_product(product, color))
+    return embedList
 
 if __name__ == "__main__":
     pass
+    

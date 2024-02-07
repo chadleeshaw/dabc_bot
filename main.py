@@ -1,4 +1,4 @@
-from dabc import dabc_drawings, from_product_to_Embeds, whiskey_allocated, whiskey_limited
+from dabc import dabc_drawings, from_productList_to_Embeds, whiskey_allocated, whiskey_limited
 from discord import send_discord, random_color
 from time import sleep
 from os import getenv
@@ -25,14 +25,14 @@ def allocated():
   color = random_color()
   whiskeyList = whiskey_allocated()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey, color)
-    send_discord('Allocated', embedList=embedList)
+    embedList = from_productList_to_Embeds(whiskey, color)
+    send_discord('Allocated', embedList)
 
 def limited():
   color = random_color()
   whiskeyList = whiskey_limited()
   for whiskey in whiskeyList:
-    embedList = from_product_to_Embeds(whiskey, color)
+    embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Limited', embedList)
 
 def drawings():

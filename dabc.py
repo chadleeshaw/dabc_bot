@@ -85,7 +85,7 @@ def whiskey_allocated() -> list[list[dict]]:
 
     completeList.sort(key=itemgetter('name'))
 
-    return [completeList[i::10] for i in range(10)]
+    return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
 
 def whiskey_limited() -> list[list[dict]]:
     dabcReq = submit_dabc_query(status='L')
@@ -94,7 +94,7 @@ def whiskey_limited() -> list[list[dict]]:
 
     whiskeyList.sort(key=itemgetter('name'))
 
-    return [whiskeyList[i::10] for i in range(10)]
+    return [whiskeyList[i:i+10] for i in range(0, len(whiskeyList), 10)]
 
 def dabc_drawings() -> list[Embeds]:
     if is_drawings():

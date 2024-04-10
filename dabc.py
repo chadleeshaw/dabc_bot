@@ -1,8 +1,11 @@
+import tabula
 from bs4 import BeautifulSoup
 from discord import Embeds
 from logs import my_logger
 from operator import itemgetter
+from datetime import datetime
 import requests
+import math
 
 logger = my_logger(__name__)
 
@@ -107,6 +110,48 @@ def from_productList_to_Embeds(productList: list[dict], color: str) -> list[Embe
         embedList.append(Embeds.from_product(product, color))
     return embedList
 
+def from_pdfList_to_Embeds(pdfList: list[dict], color: str) -> list[Embeds]:
+    embedList = []
+    for product in pdfList:
+        embedList.append(Embeds.from_pdfList(product, color))
+    return embedList
+
+def is_third_wednesday(date: datetime) -> bool:
+    # Check if the date is a Wednesday.
+    if date.weekday() != 2:
+        return False
+
+    # Check if the date is between the 15th and 21st of the month.
+    if date.day < 15 or date.day > 21:
+        return False
+
+    # Check if the date is the third Wednesday of the month.
+    first_wednesday = date - datetime.timedelta(days=date.weekday())
+    third_wednesday = first_wednesday + datetime.timedelta(days=14)
+    return date == third_wednesday
+
+def is_nan(item: any):
+    if isinstance(item, float) and math.isnan(item):
+        return True
+    return False
+    
+
+def read_dabc_pdf() -> list[dict]:
+    url = "https://abs.utah.gov/wp-content/uploads/Allocated-Item-List.pdf"
+    dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe')
+    header = dfs[0].values.tolist()[0]
+    for page in range(len(dfs)):
+        dfs[page].replace(r'\n', ' ', regex=True)
+        dfs[page] = dfs[page].iloc[1:]
+        dfs[page].columns = header
+    dfs_dict = dfs[0:].to_dict(orient='records')
+    for item in dfs_dict:
+        if is_nan(item.get('Item Name')):
+            dfs_dict.remove(item)
+        if isinstance(item.get('Item Name'), str):
+            if len(item.get('Item Name').split()) < 2:
+                dfs_dict.remove(item)
+    return dfs_dict
+
 if __name__ == "__main__":
     pass
-    

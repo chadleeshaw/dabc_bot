@@ -1,6 +1,7 @@
 from dataclasses import dataclass, asdict
 from os import environ as env
 from logs import my_logger
+from typing import Annotated
 import requests
 import random
 import json
@@ -41,12 +42,32 @@ class Embeds:
     )
 
   @classmethod
-  def from_drawings(cls: classmethod, color: str='15838749'):
+  def from_drawings(cls: classmethod, color: str='15838749') -> object:
     return cls(
       color = color,
       url = 'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts',
       title = 'Drawing(s) Detected on DABC Website',
       fields = None
+    )
+  
+  @classmethod
+  def from_pdfList(cls, product: dict, color: str) -> object:
+    return cls(
+      color = color,
+      url = None,
+      title = product.get('Item Name'),
+      fields = [
+        Fields(
+          name = 'Quantity',
+          value = product.get('Quantity'),
+          inline=True
+        ),
+        Fields(
+          name = 'Address',
+          value = product.get('Address'),
+          inline=True
+        )
+      ]
     )
 
 @dataclass
@@ -56,10 +77,10 @@ class Discord:
   embeds: list[Embeds]
 
 def random_color() -> str:
-    r = random.randint(0, 255)
-    g = random.randint(0, 255)
-    b = random.randint(0, 255)
-    return str((r * 256 * 256) + (g * 256) + b)
+  r = random.randint(0, 255)
+  g = random.randint(0, 255)
+  b = random.randint(0, 255)
+  return str((r * 256 * 256) + (g * 256) + b)
 
 def send_discord(type: str, embedList: list[Embeds]) -> None:
   logger = my_logger(__name__)
@@ -70,7 +91,7 @@ def send_discord(type: str, embedList: list[Embeds]) -> None:
     content = '',
     embeds = embedList
   )
-  
+
   discordJson = json.dumps(asdict(discord))
 
   headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}

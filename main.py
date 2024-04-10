@@ -1,5 +1,6 @@
-from dabc import dabc_drawings, from_productList_to_Embeds, whiskey_allocated, whiskey_limited
+from dabc import dabc_drawings, from_productList_to_Embeds, read_dabc_pdf, whiskey_allocated, whiskey_limited, from_pdfList_to_Embeds, is_third_wednesday
 from discord import send_discord, random_color
+from datetime import datetime
 from time import sleep
 from os import getenv
 from sys import argv
@@ -28,6 +29,14 @@ def allocated():
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Allocated', embedList)
 
+def pdf():
+  if is_third_wednesday(datetime.today()):
+    color = random_color()
+    pdfList = read_dabc_pdf()
+    for product in pdfList:
+      embedList = from_pdfList_to_Embeds(product, color)
+      send_discord('Allocated', embedList)
+
 def limited():
   color = random_color()
   whiskeyList = whiskey_limited()
@@ -54,6 +63,7 @@ def main(args):
 
   if args.now:
     allocated()
+    pdf()
     limited()
     drawings()
   else:
@@ -65,6 +75,7 @@ def main(args):
     schedule.every().day.at(time).do(allocated)
     schedule.every().day.at(time).do(limited)
     schedule.every().day.at(time).do(drawings)
+    schedule.every().day.at(time).do(pdf)
 
     while True:
         schedule.run_pending()

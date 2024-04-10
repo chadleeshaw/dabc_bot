@@ -138,13 +138,14 @@ def is_nan(item: any):
 
 def read_dabc_pdf() -> list[dict]:
     url = "https://abs.utah.gov/wp-content/uploads/Allocated-Item-List.pdf"
+    #url = 'Allocated-Item-List.pdf'
     dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe')
     header = dfs[0].values.tolist()[0]
     for page in range(len(dfs)):
         dfs[page].replace(r'\n', ' ', regex=True)
         dfs[page] = dfs[page].iloc[1:]
         dfs[page].columns = header
-    dfs_dict = dfs[0:].to_dict(orient='records')
+    dfs_dict = dfs[0].to_dict(orient='records')
     for item in dfs_dict:
         if is_nan(item.get('Item Name')):
             dfs_dict.remove(item)

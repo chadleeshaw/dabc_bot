@@ -1,7 +1,6 @@
 from dataclasses import dataclass, asdict
 from os import environ as env
 from logs import my_logger
-from typing import Annotated
 import requests
 import random
 import json
@@ -21,7 +20,7 @@ class Embeds:
   fields: list[Fields]
 
   @classmethod
-  def from_product(cls: classmethod, product: dict, color: str='15838749') -> object:
+  def from_product(cls: classmethod, product: dict, color: str='15838749') -> "Embeds":
     sku = product.get('sku')
     return cls(
       color = color,
@@ -42,7 +41,7 @@ class Embeds:
     )
 
   @classmethod
-  def from_drawings(cls: classmethod, color: str='15838749') -> object:
+  def from_drawings(cls: classmethod, color: str='15838749') -> "Embeds":
     return cls(
       color = color,
       url = 'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts',
@@ -51,7 +50,7 @@ class Embeds:
     )
   
   @classmethod
-  def from_pdfList(cls, product: dict, color: str) -> object:
+  def from_pdfList(cls, product: dict, color: str) -> "Embeds":
     return cls(
       color = color,
       url = None,
@@ -64,7 +63,7 @@ class Embeds:
         ),
         Fields(
           name = 'Address',
-          value = product.get('Address'),
+          value = product.get('Store Address'),
           inline=True
         )
       ]

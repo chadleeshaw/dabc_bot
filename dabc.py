@@ -155,4 +155,4 @@ def read_dabc_pdf() -> list[dict]:
     return dfs_dict
 
 if __name__ == "__main__":
-    print(read_dabc_pdf())
+    pass

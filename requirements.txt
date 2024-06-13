@@ -1,4 +1,4 @@
 requests
 schedule
 bs4
-tabula
+tabula-py

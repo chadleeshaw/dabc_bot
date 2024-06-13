@@ -29,8 +29,8 @@ def allocated():
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Allocated', embedList)
 
-def pdf():
-  if is_third_wednesday(datetime.today()):
+def pdf(args=None):
+  if is_third_wednesday(datetime.today()) or args.pdf:
     color = random_color()
     pdfList = read_dabc_pdf()
     for product in pdfList:
@@ -54,6 +54,7 @@ def drawings():
 def parse_args(args):
   parser = argparse.ArgumentParser(description='Bot')
   parser.add_argument('--now', action='store_true', help='Run Now')
+  parser.add_argument('--pdf', action='store_true', help='PDF')
   args = parser.parse_args()
   return args
 
@@ -63,9 +64,11 @@ def main(args):
 
   if args.now:
     allocated()
-    pdf()
+    pdf(args)
     limited()
     drawings()
+  elif args.pdf:
+    pdf(args)
   else:
     time = "11:00"
 

@@ -139,7 +139,7 @@ def is_nan(item: any):
 def read_dabc_pdf() -> list[dict]:
     url = "https://abs.utah.gov/wp-content/uploads/Allocated-Items-List.pdf"
     #url = 'Allocated-Item-List.pdf'
-    dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe')
+    dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe', user_agent='Custom User Agent')
     header = dfs[0].values.tolist()[0]
     for page in range(len(dfs)):
         dfs[page].replace(r'\n', ' ', regex=True)
@@ -155,4 +155,4 @@ def read_dabc_pdf() -> list[dict]:
     return dfs_dict
 
 if __name__ == "__main__":
-    pass
+    print(read_dabc_pdf())

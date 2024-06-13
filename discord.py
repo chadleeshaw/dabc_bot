@@ -57,13 +57,13 @@ class Embeds:
       title = product.get('Item Name'),
       fields = [
         Fields(
-          name = 'Quantity',
-          value = product.get('Quantity'),
+          name = 'Bottles',
+          value = product.get('(bottles)'),
           inline=True
         ),
         Fields(
-          name = 'Address',
-          value = product.get('Store Address'),
+          name = 'Store',
+          value = product.get('Store'),
           inline=True
         )
       ]

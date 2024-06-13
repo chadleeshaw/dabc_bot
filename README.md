@@ -14,5 +14,6 @@ docker run -d \
 -e TZ=America/{yourtimezone} \
 -e ALLOCATED_HOOK={yourdiscordwebhook} \
 -e LIMITED_HOOK={yourdiscordwebhook} \
+-e DRAWINGS_HOOK={yourdiscordwebhook} \
 ghcr.io/chadleeshaw/dabc_bot:latest
 ```

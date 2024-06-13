@@ -64,7 +64,6 @@ def main(args):
 
   if args.now:
     allocated()
-    pdf(args)
     limited()
     drawings()
   elif args.pdf:
@@ -78,7 +77,6 @@ def main(args):
     schedule.every().day.at(time).do(allocated)
     schedule.every().day.at(time).do(limited)
     schedule.every().day.at(time).do(drawings)
-    schedule.every().day.at(time).do(pdf)
 
     while True:
         schedule.run_pending()

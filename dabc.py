@@ -1,3 +1,4 @@
+from typing import Any
 import tabula
 from bs4 import BeautifulSoup
 from discord import Embeds
@@ -138,20 +139,23 @@ def is_nan(item: any):
 
 def read_dabc_pdf() -> list[dict]:
     url = "https://abs.utah.gov/wp-content/uploads/Allocated-Items-List.pdf"
-    #url = 'Allocated-Item-List.pdf'
     dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe', user_agent='Custom User Agent')
     header = dfs[0].values.tolist()[0]
     for page in range(len(dfs)):
         dfs[page].replace(r'\n', ' ', regex=True)
         dfs[page] = dfs[page].iloc[1:]
         dfs[page].columns = header
-    dfs_dict = dfs[0].to_dict(orient='records')
+    dfs_dict = dfs[0].drop_duplicates(subset='Item Name').to_dict(orient='records')
     for item in dfs_dict:
         if is_nan(item.get('Item Name')):
             dfs_dict.remove(item)
         if isinstance(item.get('Item Name'), str):
             if len(item.get('Item Name').split()) < 2:
                 dfs_dict.remove(item)
+        item.pop('County', None)
+        item.pop('(bottles)', None)
+        item.pop('Store', None)
+    print(dfs_dict)
     return dfs_dict
 
 if __name__ == "__main__":

@@ -55,18 +55,7 @@ class Embeds:
       color = color,
       url = None,
       title = product.get('Item Name'),
-      fields = [
-        Fields(
-          name = 'Bottles',
-          value = product.get('(bottles)'),
-          inline=True
-        ),
-        Fields(
-          name = 'Store',
-          value = product.get('Store'),
-          inline=True
-        )
-      ]
+      fields = []
     )
 
 @dataclass

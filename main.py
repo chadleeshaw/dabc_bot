@@ -27,22 +27,22 @@ for var in envVars:
 
 def allocated():
   color = random_color()
-  whiskeyList = allocated(category='LA')
+  whiskeyList = allocated('LA')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Boubon_Allocated', embedList)
-  tequilaList = allocated(category='AP')
+  tequilaList = allocated('AP')
   for tequila in tequilaList:
     embedList = from_productList_to_Embeds(tequila, color)
     send_discord('Tequila_Allocated', embedList)
 
 def limited():
   color = random_color()
-  whiskeyList = limited(category='LA')
+  whiskeyList = limited('LA')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Bourbon_Limited', embedList)
-  tequilaList = limited(category='AP')
+  tequilaList = limited('AP')
   for tequila in tequilaList:
     embedList = from_productList_to_Embeds(tequila, color)
     send_discord('Tequila_Limited', embedList)

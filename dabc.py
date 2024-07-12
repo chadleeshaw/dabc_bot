@@ -76,7 +76,7 @@ def is_drawings() -> bool:
 
     return True if futureDrawing or currentDrawing else False
 
-def allocated(category) -> list[list[dict]]:
+def allocated(category: str) -> list[list[dict]]:
     awReq= submit_dabc_query()
     awList = handle_product_request(awReq)
     awFinal = list(filter(in_store, awList))
@@ -91,7 +91,7 @@ def allocated(category) -> list[list[dict]]:
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
 
-def limited(category) -> list[list[dict]]:
+def limited(category: str) -> list[list[dict]]:
     dabcReq = submit_dabc_query(category=category, status='L')
     rawList = handle_product_request(dabcReq)
     whiskeyList = list(filter(in_store, rawList))

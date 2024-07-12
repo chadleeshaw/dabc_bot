@@ -25,7 +25,7 @@ for var in envVars:
     if not getenv(var):
         raise Exception(f"Missing env variable: {var}")
 
-def allocated():
+def alist():
   color = random_color()
   whiskeyList = allocated('LA')
   for whiskey in whiskeyList:
@@ -36,7 +36,7 @@ def allocated():
     embedList = from_productList_to_Embeds(tequila, color)
     send_discord('Tequila_Allocated', embedList)
 
-def limited():
+def llist():
   color = random_color()
   whiskeyList = limited('LA')
   for whiskey in whiskeyList:
@@ -65,8 +65,8 @@ def main(args):
   logger.info("Starting Bot...")
 
   if args.now:
-    allocated()
-    limited()
+    alist()
+    llist()
     drawings()
   else:
     time = "11:00"
@@ -74,8 +74,8 @@ def main(args):
     if getenv('BOOZE_TIME'):
       time = getenv('BOOZE_TIME')
 
-    schedule.every().day.at(time).do(allocated)
-    schedule.every().day.at(time).do(limited)
+    schedule.every().day.at(time).do(alist)
+    schedule.every().day.at(time).do(llist)
     schedule.every().day.at(time).do(drawings)
 
     while True:

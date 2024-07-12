@@ -12,8 +12,10 @@ Usage:
 docker run -d \
 -e BOOZE_TIME=12:00 \ #Optional
 -e TZ=America/{yourtimezone} \
--e ALLOCATED_HOOK={yourdiscordwebhook} \
--e LIMITED_HOOK={yourdiscordwebhook} \
+-e BOURBON_ALLOCATED_HOOK={yourdiscordwebhook} \
+-e BOURBON_LIMITED_HOOK={yourdiscordwebhook} \
 -e DRAWINGS_HOOK={yourdiscordwebhook} \
+-e TEQUILA_ALLOCATED_HOOK={yourdiscordwebhook} \
+-e TEQUILA_LIMITED_HOOK={yourdiscordwebhook} \
 ghcr.io/chadleeshaw/dabc_bot:latest
 ```

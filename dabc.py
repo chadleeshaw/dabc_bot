@@ -25,7 +25,7 @@ def dabc_request(method: str, url: str, data: str) -> requests:
     return dabcReq
 
 def unwanted_product(p):
-    unwanted = ['SCOTCH', 'WINE']
+    unwanted = ['SCOTCH', 'WINE', 'BEER']
     for u in unwanted:
         if u in p['name'] or u in p['displayGroup']:
             return True
@@ -49,7 +49,7 @@ def handle_product_request(dabcReq: requests) -> list[dict]:
     except:
         logger.error("DABC request did not return JSON")
 
-def submit_dabc_query(category: str = 'AW', status: str = 'A') -> requests:
+def submit_dabc_query(category: str, status: str) -> requests:
     url = "https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable"
     body = f"draw=8&columns%5B0%5D%5Bdata%5D=name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=sku&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=displayGroup&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=true&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=status&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=warehouseQty&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=storeQty&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=onOrderQty&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=currentPrice&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=asc&start=0&length=200&search%5Bvalue%5D=&search%5Bregex%5D=false&item_code=&item_name=&category={category}&sub_category=&price_min=&price_max=&on_spa=false&new_items=false&in_stock=false&status={status}"
     return dabc_request('POST', url, body)
@@ -77,28 +77,37 @@ def is_drawings() -> bool:
     return True if futureDrawing or currentDrawing else False
 
 def allocated(category: str) -> list[list[dict]]:
-    awReq= submit_dabc_query()
-    awList = handle_product_request(awReq)
-    awFinal = list(filter(in_store, awList))
+    # DABC website has an Allocated category
+    allocatedItems= submit_dabc_query(category='LA', status='')
+    aList = handle_product_request(allocatedItems)
+    aFinal = list(filter(in_store, aList))
 
-    laReq= submit_dabc_query(category=category, status='A')
-    laList = handle_product_request(laReq)
-    laFinal = list(filter(in_store, laList))
+    # Combine with allocated request of user
+    allocatedReq= submit_dabc_query(category=category, status='A')
+    allocatedList = handle_product_request(allocatedReq)
+    allocatedFinal = list(filter(in_store, allocatedList))
 
-    completeList = awFinal + laFinal
+    completeList = aFinal + allocatedFinal
 
     completeList.sort(key=itemgetter('name'))
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
 
 def limited(category: str) -> list[list[dict]]:
-    dabcReq = submit_dabc_query(category=category, status='L')
-    rawList = handle_product_request(dabcReq)
-    whiskeyList = list(filter(in_store, rawList))
+    # DABC website has a category for limited offers
+    limitedOffers = submit_dabc_query(category='LT', status='')
+    loList = handle_product_request(limitedOffers)
+    loFinal = list(filter(in_store, loList))
 
-    whiskeyList.sort(key=itemgetter('name'))
+    # Combine with limited request from user
+    limitedReq = submit_dabc_query(category=category, status='L')
+    limitedList = handle_product_request(limitedReq)
+    limitedFinal = list(filter(in_store, limitedList))
 
-    return [whiskeyList[i:i+10] for i in range(0, len(whiskeyList), 10)]
+    limitedComplete = loFinal + limitedFinal
+    limitedComplete.sort(key=itemgetter('name'))
+
+    return [limitedComplete[i:i+10] for i in range(0, len(limitedComplete), 10)]
 
 def dabc_drawings() -> list[Embeds]:
     if is_drawings():

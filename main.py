@@ -27,8 +27,8 @@ for var in envVars:
 
 def alist():
   color = random_color()
-  whiskeyList = allocated('LA')
-  for whiskey in whiskeyList:
+  whiskeyList = allocated('AW')
+  for whiskey in whiskeyList
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Bourbon_Allocated', embedList)
   tequilaList = allocated('AP')
@@ -38,7 +38,7 @@ def alist():
 
 def llist():
   color = random_color()
-  whiskeyList = limited('LA')
+  whiskeyList = limited('AW')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
     send_discord('Bourbon_Limited', embedList)

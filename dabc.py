@@ -25,7 +25,7 @@ def dabc_request(method: str, url: str, data: str) -> requests:
     return dabcReq
 
 def unwanted_product(p):
-    unwanted = ['SCOTCH', 'WINE', 'BEER']
+    unwanted = ['SCOTCH', 'WINE', 'BEER', '(Club Store']
     for u in unwanted:
         if u in p['name'] or u in p['displayGroup']:
             return True

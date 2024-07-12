@@ -30,7 +30,7 @@ def alist():
   whiskeyList = allocated('LA')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
-    send_discord('Boubon_Allocated', embedList)
+    send_discord('Bourbon_Allocated', embedList)
   tequilaList = allocated('AP')
   for tequila in tequilaList:
     embedList = from_productList_to_Embeds(tequila, color)

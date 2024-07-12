@@ -83,7 +83,7 @@ def send_discord(type: str, embedList: list[Embeds]) -> None:
   discordJson = json.dumps(asdict(discord))
 
   headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-  discord_req = requests.post(webHook, headers=headers, data=discordJson)
+  discord_req = requests.post(url=webHook, headers=headers, data=discordJson)
 
   try:
     discord_req.raise_for_status()

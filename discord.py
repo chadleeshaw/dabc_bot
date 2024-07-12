@@ -75,7 +75,7 @@ def send_discord(type: str, embedList: list[Embeds]) -> None:
   webHook = env.get(f"{type.upper()}_HOOK", "")
 
   discord = Discord(
-    username = f"{type.title()} Whiskey",
+    username = f"{type.title()}",
     content = '',
     embeds = embedList
   )

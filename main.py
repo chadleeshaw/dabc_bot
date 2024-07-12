@@ -1,4 +1,5 @@
-from dabc import dabc_drawings, from_productList_to_Embeds, read_dabc_pdf, whiskey_allocated, whiskey_limited, from_pdfList_to_Embeds, is_third_wednesday
+from unicodedata import category
+from dabc import dabc_drawings, from_productList_to_Embeds, allocated, limited
 from discord import send_discord, random_color
 from datetime import datetime
 from time import sleep
@@ -13,9 +14,11 @@ from logs import my_logger
 logger = my_logger(__name__)
 
 envVars = (
-    "ALLOCATED_HOOK",
-    "LIMITED_HOOK",
-    "DRAWINGS_HOOK"
+    "BOURBON_ALLOCATED_HOOK",
+    "BOURBON_LIMITED_HOOK",
+    "DRAWINGS_HOOK",
+    "TEQUILA_ALLOCATED_HOOK",
+    "TEQUILA_LIMITED_HOOK",
 )
 
 for var in envVars:
@@ -24,25 +27,25 @@ for var in envVars:
 
 def allocated():
   color = random_color()
-  whiskeyList = whiskey_allocated()
+  whiskeyList = allocated(category='LA')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
-    send_discord('Allocated', embedList)
-
-def pdf(args=None):
-  if is_third_wednesday(datetime.today()) or args.pdf:
-    color = random_color()
-    pdfList = read_dabc_pdf()
-    for product in pdfList:
-      embedList = from_pdfList_to_Embeds(product, color)
-      send_discord('Allocated', embedList)
+    send_discord('Boubon_Allocated', embedList)
+  tequilaList = allocated(category='AP')
+  for tequila in tequilaList:
+    embedList = from_productList_to_Embeds(tequila, color)
+    send_discord('Tequila_Allocated', embedList)
 
 def limited():
   color = random_color()
-  whiskeyList = whiskey_limited()
+  whiskeyList = limited(category='LA')
   for whiskey in whiskeyList:
     embedList = from_productList_to_Embeds(whiskey, color)
-    send_discord('Limited', embedList)
+    send_discord('Bourbon_Limited', embedList)
+  tequilaList = limited(category='AP')
+  for tequila in tequilaList:
+    embedList = from_productList_to_Embeds(tequila, color)
+    send_discord('Tequila_Limited', embedList)
 
 def drawings():
   drawings = dabc_drawings()
@@ -54,7 +57,6 @@ def drawings():
 def parse_args(args):
   parser = argparse.ArgumentParser(description='Bot')
   parser.add_argument('--now', action='store_true', help='Run Now')
-  parser.add_argument('--pdf', action='store_true', help='PDF')
   args = parser.parse_args()
   return args
 
@@ -66,8 +68,6 @@ def main(args):
     allocated()
     limited()
     drawings()
-  elif args.pdf:
-    pdf(args)
   else:
     time = "11:00"
 

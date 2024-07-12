@@ -25,7 +25,7 @@ def dabc_request(method: str, url: str, data: str) -> requests:
     return dabcReq
 
 def unwanted_product(p):
-    unwanted = ['SCOTCH', 'WINE', 'TEQUILA']
+    unwanted = ['SCOTCH', 'WINE']
     for u in unwanted:
         if u in p['name'] or u in p['displayGroup']:
             return True
@@ -76,12 +76,12 @@ def is_drawings() -> bool:
 
     return True if futureDrawing or currentDrawing else False
 
-def whiskey_allocated() -> list[list[dict]]:
+def allocated(category) -> list[list[dict]]:
     awReq= submit_dabc_query()
     awList = handle_product_request(awReq)
     awFinal = list(filter(in_store, awList))
 
-    laReq= submit_dabc_query(category='LA')
+    laReq= submit_dabc_query(category=category, status='A')
     laList = handle_product_request(laReq)
     laFinal = list(filter(in_store, laList))
 
@@ -91,8 +91,8 @@ def whiskey_allocated() -> list[list[dict]]:
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
 
-def whiskey_limited() -> list[list[dict]]:
-    dabcReq = submit_dabc_query(status='L')
+def limited(category) -> list[list[dict]]:
+    dabcReq = submit_dabc_query(category=category, status='L')
     rawList = handle_product_request(dabcReq)
     whiskeyList = list(filter(in_store, rawList))
 
@@ -111,52 +111,52 @@ def from_productList_to_Embeds(productList: list[dict], color: str) -> list[Embe
         embedList.append(Embeds.from_product(product, color))
     return embedList
 
-def from_pdfList_to_Embeds(pdfList: list[dict], color: str) -> list[Embeds]:
-    embedList = []
-    for product in pdfList:
-        embedList.append(Embeds.from_pdfList(product, color))
-    return embedList
+# def from_pdfList_to_Embeds(pdfList: list[dict], color: str) -> list[Embeds]:
+#     embedList = []
+#     for product in pdfList:
+#         embedList.append(Embeds.from_pdfList(product, color))
+#     return embedList
 
-def is_third_wednesday(date: datetime) -> bool:
-    # Check if the date is a Wednesday.
-    if date.weekday() != 2:
-        return False
+# def is_third_wednesday(date: datetime) -> bool:
+#     # Check if the date is a Wednesday.
+#     if date.weekday() != 2:
+#         return False
 
-    # Check if the date is between the 15th and 21st of the month.
-    if date.day < 15 or date.day > 21:
-        return False
+#     # Check if the date is between the 15th and 21st of the month.
+#     if date.day < 15 or date.day > 21:
+#         return False
 
-    # Check if the date is the third Wednesday of the month.
-    first_wednesday = date - datetime.timedelta(days=date.weekday())
-    third_wednesday = first_wednesday + datetime.timedelta(days=14)
-    return date == third_wednesday
+#     # Check if the date is the third Wednesday of the month.
+#     first_wednesday = date - datetime.timedelta(days=date.weekday())
+#     third_wednesday = first_wednesday + datetime.timedelta(days=14)
+#     return date == third_wednesday
 
-def is_nan(item: any):
-    if isinstance(item, float) and math.isnan(item):
-        return True
-    return False
+# def is_nan(item: any):
+#     if isinstance(item, float) and math.isnan(item):
+#         return True
+#     return False
     
 
-def read_dabc_pdf() -> list[dict]:
-    url = "https://abs.utah.gov/wp-content/uploads/Allocated-Items-List.pdf"
-    dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe', user_agent='Custom User Agent')
-    header = dfs[0].values.tolist()[0]
-    for page in range(len(dfs)):
-        dfs[page].replace(r'\n', ' ', regex=True)
-        dfs[page] = dfs[page].iloc[1:]
-        dfs[page].columns = header
-    dfs_dict = dfs[0].drop_duplicates(subset='Item Name').to_dict(orient='records')
-    for item in dfs_dict:
-        if is_nan(item.get('Item Name')):
-            dfs_dict.remove(item)
-        if isinstance(item.get('Item Name'), str):
-            if len(item.get('Item Name').split()) < 2:
-                dfs_dict.remove(item)
-        item.pop('County', None)
-        item.pop('(bottles)', None)
-        item.pop('Store', None)
-    print(dfs_dict)
-    return dfs_dict
+# def read_dabc_pdf() -> list[dict]:
+#     url = "https://abs.utah.gov/wp-content/uploads/Allocated-Items-List.pdf"
+#     dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe', user_agent='Custom User Agent')
+#     header = dfs[0].values.tolist()[0]
+#     for page in range(len(dfs)):
+#         dfs[page].replace(r'\n', ' ', regex=True)
+#         dfs[page] = dfs[page].iloc[1:]
+#         dfs[page].columns = header
+#     dfs_dict = dfs[0].drop_duplicates(subset='Item Name').to_dict(orient='records')
+#     for item in dfs_dict:
+#         if is_nan(item.get('Item Name')):
+#             dfs_dict.remove(item)
+#         if isinstance(item.get('Item Name'), str):
+#             if len(item.get('Item Name').split()) < 2:
+#                 dfs_dict.remove(item)
+#         item.pop('County', None)
+#         item.pop('(bottles)', None)
+#         item.pop('Store', None)
+#     print(dfs_dict)
+#     return dfs_dict
 
 if __name__ == "__main__":
     pass

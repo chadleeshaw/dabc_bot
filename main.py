@@ -23,18 +23,18 @@ for var in envVars:
     if not getenv(var):
         raise Exception(f"Missing env variable: {var}")
 
-def post_allocated():
+def postAllocated():
   color = random_color()
-  allocatedList = allocated('AW')
-  for allocated in allocatedList:
-    embedList = from_productList_to_Embeds(allocated, color)
+  allocatedList = allocated()
+  for a in allocatedList:
+    embedList = from_productList_to_Embeds(a, color)
     send_discord('Allocated', embedList)
 
 def post_limited():
   color = random_color()
-  limitedList = limited('AW')
-  for limited in limitedList:
-    embedList = from_productList_to_Embeds(limited, color)
+  limitedList = limited()
+  for l in limitedList:
+    embedList = from_productList_to_Embeds(l, color)
     send_discord('Limited', embedList)
 
 def drawings():

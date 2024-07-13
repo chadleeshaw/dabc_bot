@@ -1,12 +1,10 @@
 from typing import Any
-import tabula
 from bs4 import BeautifulSoup
 from discord import Embeds
 from logs import my_logger
 from operator import itemgetter
-from datetime import datetime
 import requests
-import math
+
 
 CATEGORIES = (
     'AW', # Whiskey

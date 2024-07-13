@@ -1,6 +1,6 @@
 # Utah DABC Discord Bot
 
-This bot will once a day post Utah DABC limited and Allocated Whiskeys to Discord.
+This bot will once a day post Utah DABC limited and Allocated items to Discord.
 
 Requirements:
 ```

@@ -30,14 +30,14 @@ def postAllocated():
     embedList = from_productList_to_Embeds(a, color)
     send_discord('Allocated', embedList)
 
-def post_limited():
+def postLimited():
   color = random_color()
   limitedList = limited()
   for l in limitedList:
     embedList = from_productList_to_Embeds(l, color)
     send_discord('Limited', embedList)
 
-def drawings():
+def postDrawings():
   drawings = dabc_drawings()
   if drawings:
     send_discord('Drawings', drawings)
@@ -55,18 +55,18 @@ def main(args):
   logger.info("Starting Bot...")
 
   if args.now:
-    post_allocated()()
-    post_limited()()
-    drawings()
+    postAllocated()()
+    postLimited()()
+    postDrawings()
   else:
     time = "11:00"
 
     if getenv('BOOZE_TIME'):
       time = getenv('BOOZE_TIME')
 
-    schedule.every().day.at(time).do(post_allocated())
-    schedule.every().day.at(time).do(post_limited())
-    schedule.every().day.at(time).do(drawings)
+    schedule.every().day.at(time).do(postAllocated())
+    schedule.every().day.at(time).do(postLimited())
+    schedule.every().day.at(time).do(postDrawings)
 
     while True:
         schedule.run_pending()

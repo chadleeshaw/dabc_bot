@@ -8,6 +8,11 @@ from datetime import datetime
 import requests
 import math
 
+CATEGORIES = (
+    'AW', # Whiskey
+    'AP', # Tequila
+)
+
 logger = my_logger(__name__)
 
 def dabc_request(method: str, url: str, data: str) -> requests:
@@ -25,7 +30,7 @@ def dabc_request(method: str, url: str, data: str) -> requests:
     return dabcReq
 
 def unwanted_product(p):
-    unwanted = ['SCOTCH', 'WINE', 'BEER', '(Club Store']
+    unwanted = ['SCOTCH', 'WINE', 'BEER', 'STATE STORE']
     for u in unwanted:
         if u in p['name'] or u in p['displayGroup']:
             return True
@@ -76,33 +81,36 @@ def is_drawings() -> bool:
 
     return True if futureDrawing or currentDrawing else False
 
-def allocated(category: str) -> list[list[dict]]:
-    # DABC website has an Allocated category
+def allocated() -> list[list[dict]]:
+    allocatedFinal = []
+    # DABC website has an Allocated Items category
     allocatedItems= submit_dabc_query(category='LA', status='')
     aList = handle_product_request(allocatedItems)
     aFinal = list(filter(in_store, aList))
 
-    # Combine with allocated request of user
-    allocatedReq= submit_dabc_query(category=category, status='A')
-    allocatedList = handle_product_request(allocatedReq)
-    allocatedFinal = list(filter(in_store, allocatedList))
+    # Append Allocated Items from CATEGORIES
+    for category in CATEGORIES:
+        allocatedReq= submit_dabc_query(category=category, status='A')
+        allocatedList = handle_product_request(allocatedReq)
+        allocatedFinal.append(list(filter(in_store, allocatedList)))
 
     completeList = aFinal + allocatedFinal
-
     completeList.sort(key=itemgetter('name'))
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
 
-def limited(category: str) -> list[list[dict]]:
-    # DABC website has a category for limited offers
+def limited() -> list[list[dict]]:
+    limitedFinal = []
+    # DABC website has a category for Limited Offers
     limitedOffers = submit_dabc_query(category='LT', status='')
     loList = handle_product_request(limitedOffers)
     loFinal = list(filter(in_store, loList))
 
-    # Combine with limited request from user
-    limitedReq = submit_dabc_query(category=category, status='L')
-    limitedList = handle_product_request(limitedReq)
-    limitedFinal = list(filter(in_store, limitedList))
+    # Append Limited Items from CATEGORIES
+    for category in CATEGORIES:
+        limitedReq = submit_dabc_query(category=category, status='L')
+        limitedList = handle_product_request(limitedReq)
+        limitedFinal.append(list(filter(in_store, limitedList)))
 
     limitedComplete = loFinal + limitedFinal
     limitedComplete.sort(key=itemgetter('name'))

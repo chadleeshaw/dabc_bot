@@ -14,38 +14,28 @@ from logs import my_logger
 logger = my_logger(__name__)
 
 envVars = (
-    "BOURBON_ALLOCATED_HOOK",
-    "BOURBON_LIMITED_HOOK",
+    "ALLOCATED_HOOK",
+    "LIMITED_HOOK",
     "DRAWINGS_HOOK",
-    "TEQUILA_ALLOCATED_HOOK",
-    "TEQUILA_LIMITED_HOOK",
 )
 
 for var in envVars:
     if not getenv(var):
         raise Exception(f"Missing env variable: {var}")
 
-def alist():
+def post_allocated():
   color = random_color()
-  whiskeyList = allocated('AW')
-  for whiskey in whiskeyList:
-    embedList = from_productList_to_Embeds(whiskey, color)
-    send_discord('Bourbon_Allocated', embedList)
-  tequilaList = allocated('AP')
-  for tequila in tequilaList:
-    embedList = from_productList_to_Embeds(tequila, color)
-    send_discord('Tequila_Allocated', embedList)
+  allocatedList = allocated('AW')
+  for allocated in allocatedList:
+    embedList = from_productList_to_Embeds(allocated, color)
+    send_discord('Allocated', embedList)
 
-def llist():
+def post_limited():
   color = random_color()
-  whiskeyList = limited('AW')
-  for whiskey in whiskeyList:
-    embedList = from_productList_to_Embeds(whiskey, color)
-    send_discord('Bourbon_Limited', embedList)
-  tequilaList = limited('AP')
-  for tequila in tequilaList:
-    embedList = from_productList_to_Embeds(tequila, color)
-    send_discord('Tequila_Limited', embedList)
+  limitedList = limited('AW')
+  for limited in limitedList:
+    embedList = from_productList_to_Embeds(limited, color)
+    send_discord('Limited', embedList)
 
 def drawings():
   drawings = dabc_drawings()
@@ -65,8 +55,8 @@ def main(args):
   logger.info("Starting Bot...")
 
   if args.now:
-    alist()
-    llist()
+    post_allocated()()
+    post_limited()()
     drawings()
   else:
     time = "11:00"
@@ -74,8 +64,8 @@ def main(args):
     if getenv('BOOZE_TIME'):
       time = getenv('BOOZE_TIME')
 
-    schedule.every().day.at(time).do(alist)
-    schedule.every().day.at(time).do(llist)
+    schedule.every().day.at(time).do(post_allocated())
+    schedule.every().day.at(time).do(post_limited())
     schedule.every().day.at(time).do(drawings)
 
     while True:

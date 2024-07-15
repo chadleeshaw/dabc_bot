@@ -4,6 +4,7 @@ from discord import Embeds
 from logs import my_logger
 from operator import itemgetter
 import requests
+import re
 
 
 CATEGORIES = (
@@ -28,7 +29,7 @@ def dabc_request(method: str, url: str, data: str) -> requests:
     return dabcReq
 
 def unwanted_product(p):
-    unwanted = ['SCOTCH', 'WINE', 'BEER', 'STATE STORE']
+    unwanted = ['SCOTCH', 'WINE', 'BEER']
     for u in unwanted:
         if u in p['name'] or u in p['displayGroup']:
             return True
@@ -81,16 +82,26 @@ def is_drawings() -> bool:
 
 def allocated() -> list[list[dict]]:
     allocatedFinal = []
+    aFinal = []
     # DABC website has an Allocated Items category
     allocatedItems= submit_dabc_query(category='LA', status='')
     aList = handle_product_request(allocatedItems)
-    aFinal = list(filter(in_store, aList))
+    for item in aList:
+        if in_store(item):
+            storeList = scrape_store_location(allocatedItems, item.get('sku'))
+            if storeList: 
+                aFinal.append(item)
+
 
     # Append Allocated Items from CATEGORIES
     for category in CATEGORIES:
-        allocatedReq= submit_dabc_query(category=category, status='A')
+        allocatedReq = submit_dabc_query(category=category, status='A')
         allocatedList = handle_product_request(allocatedReq)
-        allocatedFinal = allocatedFinal + list(filter(in_store, allocatedList))
+        for item in allocatedList:
+            if in_store(item):
+                storeList = scrape_store_location(allocatedReq, item.get('sku'))
+                if storeList:
+                    allocatedFinal.append(item)
 
     completeList = allocatedFinal + aFinal
     completeList.sort(key=itemgetter('name'))
@@ -99,16 +110,25 @@ def allocated() -> list[list[dict]]:
 
 def limited() -> list[list[dict]]:
     limitedFinal = []
+    loFinal = []
     # DABC website has a category for Limited Offers
     limitedOffers = submit_dabc_query(category='LT', status='')
     loList = handle_product_request(limitedOffers)
-    loFinal = list(filter(in_store, loList))
+    for item in loList:
+        if in_store(item):
+            storeList = scrape_store_location(limitedOffers, item.get('sku'))
+            if storeList: 
+                loFinal.append(item)
 
     # Append Limited Items from CATEGORIES
     for category in CATEGORIES:
         limitedReq = submit_dabc_query(category=category, status='L')
         limitedList = handle_product_request(limitedReq)
-        limitedFinal = limitedFinal + list(filter(in_store, limitedList))
+        for item in limitedList:
+            if in_store(item):
+                storeList = scrape_store_location(limitedReq, item.get('sku'))
+                if storeList:
+                    limitedFinal.append(item)
 
     limitedComplete = limitedFinal + loFinal
     limitedComplete.sort(key=itemgetter('name'))
@@ -126,52 +146,48 @@ def from_productList_to_Embeds(productList: list[dict], color: str) -> list[Embe
         embedList.append(Embeds.from_product(product, color))
     return embedList
 
-# def from_pdfList_to_Embeds(pdfList: list[dict], color: str) -> list[Embeds]:
-#     embedList = []
-#     for product in pdfList:
-#         embedList.append(Embeds.from_pdfList(product, color))
-#     return embedList
+def scrape_store_location(dabcReq: requests, sku: str) -> list[dict]:
+    url= f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}'
+    skuReq = requests.get(url, cookies=dabcReq.cookies, headers=dabcReq.headers)
+    skuReq.raise_for_status()
 
-# def is_third_wednesday(date: datetime) -> bool:
-#     # Check if the date is a Wednesday.
-#     if date.weekday() != 2:
-#         return False
+    storeReq = requests.get(skuReq.text, cookies=skuReq.cookies, headers=skuReq.headers)
+    storeReq.raise_for_status()
 
-#     # Check if the date is between the 15th and 21st of the month.
-#     if date.day < 15 or date.day > 21:
-#         return False
+    soup = BeautifulSoup(storeReq.text, 'html.parser')
+    gdp = soup.find_all('table', id = 'storeTable')
+    table1 = gdp[0]
+    body = table1.find_all("tr")
+    body_rows = body[1:]
 
-#     # Check if the date is the third Wednesday of the month.
-#     first_wednesday = date - datetime.timedelta(days=date.weekday())
-#     third_wednesday = first_wednesday + datetime.timedelta(days=14)
-#     return date == third_wednesday
+    headings = ('store','name','address','city','phone','store qty','pin')
 
-# def is_nan(item: any):
-#     if isinstance(item, float) and math.isnan(item):
-#         return True
-#     return False
-    
+    storeList = []
+    for row_num in range(len(body_rows)):
+        row = []
+        for row_item in body_rows[row_num].find_all("td"):
+            aa = re.sub("(\xa0)|(\n)|,","",row_item.text)
+            row.append(aa)
+        createDict = dict(zip(headings, row))
+        storeDict = handle_store_dict(createDict)
 
-# def read_dabc_pdf() -> list[dict]:
-#     url = "https://abs.utah.gov/wp-content/uploads/Allocated-Items-List.pdf"
-#     dfs = tabula.read_pdf(url, pages='all', stream=True, output_format='dataframe', user_agent='Custom User Agent')
-#     header = dfs[0].values.tolist()[0]
-#     for page in range(len(dfs)):
-#         dfs[page].replace(r'\n', ' ', regex=True)
-#         dfs[page] = dfs[page].iloc[1:]
-#         dfs[page].columns = header
-#     dfs_dict = dfs[0].drop_duplicates(subset='Item Name').to_dict(orient='records')
-#     for item in dfs_dict:
-#         if is_nan(item.get('Item Name')):
-#             dfs_dict.remove(item)
-#         if isinstance(item.get('Item Name'), str):
-#             if len(item.get('Item Name').split()) < 2:
-#                 dfs_dict.remove(item)
-#         item.pop('County', None)
-#         item.pop('(bottles)', None)
-#         item.pop('Store', None)
-#     print(dfs_dict)
-#     return dfs_dict
+        if not isClubStore(storeDict):
+            storeList.append(storeDict)
+
+    return storeList
+
+def handle_store_dict(store: dict) -> dict:
+    return dict({
+            "name": store.get('name'),
+            "city": store.get('city')[:16],
+            "store qty": store.get('store qty')[:16],
+            "address": store.get('address')[:16],
+        })
+
+def isClubStore(store: dict) -> bool:
+    if '(Club' in store.get('name'):
+        return True
+    return False
 
 if __name__ == "__main__":
-    pass
+    print(allocated())

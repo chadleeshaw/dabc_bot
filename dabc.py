@@ -92,7 +92,7 @@ def allocated() -> list[list[dict]]:
         allocatedList = handle_product_request(allocatedReq)
         allocatedFinal.append(list(filter(in_store, allocatedList)))
 
-    completeList = aFinal + allocatedFinal
+    completeList = allocatedFinal[0] + aFinal
     completeList.sort(key=itemgetter('name'))
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
@@ -110,7 +110,7 @@ def limited() -> list[list[dict]]:
         limitedList = handle_product_request(limitedReq)
         limitedFinal.append(list(filter(in_store, limitedList)))
 
-    limitedComplete = loFinal + limitedFinal
+    limitedComplete = limitedFinal[0] + loFinal
     limitedComplete.sort(key=itemgetter('name'))
 
     return [limitedComplete[i:i+10] for i in range(0, len(limitedComplete), 10)]

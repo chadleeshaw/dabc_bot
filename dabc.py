@@ -190,4 +190,4 @@ def isClubStore(store: dict) -> bool:
     return False
 
 if __name__ == "__main__":
-    print(allocated())
+    pass

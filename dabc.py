@@ -90,9 +90,9 @@ def allocated() -> list[list[dict]]:
     for category in CATEGORIES:
         allocatedReq= submit_dabc_query(category=category, status='A')
         allocatedList = handle_product_request(allocatedReq)
-        allocatedFinal.append(list(filter(in_store, allocatedList)))
+        allocatedFinal = allocatedFinal + list(filter(in_store, allocatedList))
 
-    completeList = allocatedFinal[0] + aFinal
+    completeList = allocatedFinal + aFinal
     completeList.sort(key=itemgetter('name'))
 
     return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
@@ -108,9 +108,9 @@ def limited() -> list[list[dict]]:
     for category in CATEGORIES:
         limitedReq = submit_dabc_query(category=category, status='L')
         limitedList = handle_product_request(limitedReq)
-        limitedFinal.append(list(filter(in_store, limitedList)))
+        limitedFinal = limitedFinal + list(filter(in_store, limitedList))
 
-    limitedComplete = limitedFinal[0] + loFinal
+    limitedComplete = limitedFinal + loFinal
     limitedComplete.sort(key=itemgetter('name'))
 
     return [limitedComplete[i:i+10] for i in range(0, len(limitedComplete), 10)]

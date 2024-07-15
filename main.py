@@ -55,8 +55,8 @@ def main(args):
   logger.info("Starting Bot...")
 
   if args.now:
-    postAllocated()()
-    postLimited()()
+    postAllocated()
+    postLimited()
     postDrawings()
   else:
     time = "11:00"
@@ -64,8 +64,8 @@ def main(args):
     if getenv('BOOZE_TIME'):
       time = getenv('BOOZE_TIME')
 
-    schedule.every().day.at(time).do(postAllocated())
-    schedule.every().day.at(time).do(postLimited())
+    schedule.every().day.at(time).do(postAllocated)
+    schedule.every().day.at(time).do(postLimited)
     schedule.every().day.at(time).do(postDrawings)
 
     while True:

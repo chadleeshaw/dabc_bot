@@ -78,7 +78,6 @@ def submit_dabc_query(category: str, status: str = '') -> requests.Response:
     """
     base_url = "https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable"
     
-    # Parameters for the query
     params = {
         "draw": "8",
         "columns[0][data]": "name",
@@ -87,12 +86,65 @@ def submit_dabc_query(category: str, status: str = '') -> requests.Response:
         "columns[0][orderable]": "true",
         "columns[0][search][value]": "",
         "columns[0][search][regex]": "false",
-        "category": category,
+        "columns[1][data]": "sku",
+        "columns[1][name]": "",
+        "columns[1][searchable]": "true",
+        "columns[1][orderable]": "false",
+        "columns[1][search][value]": "",
+        "columns[1][search][regex]": "false",
+        "columns[2][data]": "displayGroup",
+        "columns[2][name]": "",
+        "columns[2][searchable]": "true",
+        "columns[2][orderable]": "true",
+        "columns[2][search][value]": "",
+        "columns[2][search][regex]": "false",
+        "columns[3][data]": "status",
+        "columns[3][name]": "",
+        "columns[3][searchable]": "true",
+        "columns[3][orderable]": "true",
+        "columns[3][search][value]": "",
+        "columns[3][search][regex]": "false",
+        "columns[4][data]": "warehouseQty",
+        "columns[4][name]": "",
+        "columns[4][searchable]": "true",
+        "columns[4][orderable]": "true",
+        "columns[4][search][value]": "",
+        "columns[4][search][regex]": "false",
+        "columns[5][data]": "storeQty",
+        "columns[5][name]": "",
+        "columns[5][searchable]": "true",
+        "columns[5][orderable]": "true",
+        "columns[5][search][value]": "",
+        "columns[5][search][regex]": "false",
+        "columns[6][data]": "onOrderQty",
+        "columns[6][name]": "",
+        "columns[6][searchable]": "true",
+        "columns[6][orderable]": "true",
+        "columns[6][search][value]": "",
+        "columns[6][search][regex]": "false",
+        "columns[7][data]": "currentPrice",
+        "columns[7][name]": "",
+        "columns[7][searchable]": "true",
+        "columns[7][orderable]": "true",
+        "columns[7][search][value]": "",
+        "columns[7][search][regex]": "false",
+        "order[0][column]": "0",
+        "order[0][dir]": "asc",
+        "start": "0",
+        "length": "200",
+        "search[value]": "",
+        "search[regex]": "false",
+        "item_code": "",
+        "item_name": "",
+        "category": f"{category}",
+        "sub_category": "",
+        "price_min": "",
+        "price_max": "",
+        "on_spa": "false",
+        "new_items": "false",
+        "in_stock": "false",
+        "status": f"{status}", 
     }
-    
-    if status:
-        params["status"] = status
-    
     # Encode the parameters
     encoded_body = urllib.parse.urlencode(params)
     

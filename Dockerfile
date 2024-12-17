@@ -5,7 +5,7 @@ WORKDIR /opt/bot
 
 COPY *.py requirements.txt ./
 
-RUN apt-get update && apt-get install -y openjdk-17-jdk
+RUN apt-get update && apt-get upgrade
 
 RUN pip3 install -r requirements.txt
 

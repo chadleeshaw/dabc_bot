@@ -1,5 +1,3 @@
 requests
 schedule
 bs4
-# tabula-py
-# JPype1

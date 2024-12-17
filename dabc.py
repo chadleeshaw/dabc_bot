@@ -1,193 +1,215 @@
-from typing import Any
+from typing import List, Dict, Any
 from bs4 import BeautifulSoup
-from discord import Embeds
-from logs import my_logger
-from operator import itemgetter
+from discord import Embed
 import requests
 import re
-
-
-CATEGORIES = (
-    'AW', # Whiskey
-    'AP', # Tequila
-)
+import urllib.parse
+from operator import itemgetter
+from logs import my_logger
 
 logger = my_logger(__name__)
 
-def dabc_request(method: str, url: str, data: str) -> requests:
+# Constants
+CATEGORIES = {
+    'AW': 'Whiskey',  # Whiskey
+    'AP': 'Tequila',  # Tequila
+}
+
+def dabc_request(method: str, url: str, data: str = None) -> requests.Response:
+    """
+    Send a request to DABC with specified method, URL, and data.
+
+    :param method: HTTP method ('GET' or 'POST')
+    :param url: API endpoint URL
+    :param data: Data to send with POST requests
+    :return: Response object from requests
+    """
     headers = {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
     }
 
-    dabcReq = requests.request(method, url, headers=headers, data=data)
-
+    response = requests.request(method, url, headers=headers, data=data)
+    
     try:
-        dabcReq.raise_for_status()
+        response.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        logger.error(err)
+        logger.error(f"Error in DABC request: {err}")
+    
+    return response
 
-    return dabcReq
+def is_unwanted_product(product: Dict[str, Any]) -> bool:
+    """
+    Check if the product should be skipped based on unwanted categories.
 
-def unwanted_product(p):
+    :param product: Dictionary containing product details
+    :return: True if the product is unwanted, False otherwise
+    """
     unwanted = ['SCOTCH', 'WINE', 'BEER']
-    for u in unwanted:
-        if u in p['name'] or u in p['displayGroup']:
-            return True
-    return False
+    return any(unwanted_item in product.get('name', '').upper() or unwanted_item in product.get('displayGroup', '').upper() for unwanted_item in unwanted)
 
-def handle_product_request(dabcReq: requests) -> list[dict]:
+def handle_product_response(response: requests.Response) -> List[Dict[str, Any]]:
+    """
+    Process the DABC response and filter out unwanted products.
+
+    :param response: The response object from DABC request
+    :return: List of filtered product dictionaries
+    """
     try:
-        if dabcReq.json():
-            newList = []
-            if dabcReq.json().get('recordsTotal') == 0:
-                logger.warn('DABC request returned zero results')
-            productList = dabcReq.json().get('data', [])
-            for product in productList:
-                del product['onSpa']
-                del product['newItem']
-                del product['inStock']
-                if unwanted_product(product):
-                    continue
-                newList.append(product)
-            return newList
-    except:
+        data = response.json()
+        if data.get('recordsTotal') == 0:
+            logger.warning('DABC request returned zero results')
+        
+        products = data.get('data', [])
+        return [
+            {k: v for k, v in product.items() if k not in ['onSpa', 'newItem', 'inStock']}
+            for product in products if not is_unwanted_product(product)
+        ]
+    except ValueError:
         logger.error("DABC request did not return JSON")
+        return []
 
-def submit_dabc_query(category: str, status: str) -> requests:
-    url = "https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable"
-    body = f"draw=8&columns%5B0%5D%5Bdata%5D=name&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=sku&columns%5B1%5D%5Bname%5D=&columns%5B1%5D%5Bsearchable%5D=true&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=displayGroup&columns%5B2%5D%5Bname%5D=&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=true&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=status&columns%5B3%5D%5Bname%5D=&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=true&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=warehouseQty&columns%5B4%5D%5Bname%5D=&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=true&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=storeQty&columns%5B5%5D%5Bname%5D=&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=true&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=onOrderQty&columns%5B6%5D%5Bname%5D=&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=true&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=currentPrice&columns%5B7%5D%5Bname%5D=&columns%5B7%5D%5Bsearchable%5D=true&columns%5B7%5D%5Borderable%5D=true&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=asc&start=0&length=200&search%5Bvalue%5D=&search%5Bregex%5D=false&item_code=&item_name=&category={category}&sub_category=&price_min=&price_max=&on_spa=false&new_items=false&in_stock=false&status={status}"
-    return dabc_request('POST', url, body)
+def submit_dabc_query(category: str, status: str = '') -> requests.Response:
+    """
+    Submit a query to the DABC product table after URL encoding the parameters.
+    
+    :param category: The category to filter by
+    :param status: The status to filter by (optional)
+    :return: The response from the DABC API
+    """
+    base_url = "https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/LoadProductTable"
+    
+    # Parameters for the query
+    params = {
+        "draw": "8",
+        "columns[0][data]": "name",
+        "columns[0][name]": "",
+        "columns[0][searchable]": "true",
+        "columns[0][orderable]": "true",
+        "columns[0][search][value]": "",
+        "columns[0][search][regex]": "false",
+        "category": category,
+    }
+    
+    if status:
+        params["status"] = status
+    
+    # Encode the parameters
+    encoded_body = urllib.parse.urlencode(params)
+    
+    # Make the request with the encoded body
+    return dabc_request('POST', base_url, encoded_body)
 
-def in_store(product: dict) -> bool:
-    if product.get('storeQty') > 0:
-            return True
-    return False
+def is_product_in_store(product: Dict[str, Any]) -> bool:
+    """Check if the product is available in-store."""
+    return product.get('storeQty', 0) > 0
 
-def is_drawings() -> bool:
-    futureDrawing = True
-    currentDrawing = True
-    url= f'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts'
-    dabcReq = dabc_request('GET', url, None)
+def check_for_drawings() -> bool:
+    """
+    Check if there are current or future drawings on the DABC website.
 
-    soup = BeautifulSoup(dabcReq.text, 'html.parser')
-    future = soup.find_all('div', id = 'future')
-    current = soup.find_all('div', id = 'current')
+    :return: True if drawings are found, False otherwise
+    """
+    url = 'https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts'
+    response = dabc_request('GET', url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    future = soup.find('div', id='future')
+    current = soup.find('div', id='current')
 
-    if 'No Future' in str(future[0]):
-        futureDrawing = False
-    if 'No Current' in str(current[0]):
-        currentDrawing = False
+    return 'No Future' not in str(future) or 'No Current' not in str(current)
 
-    return True if futureDrawing or currentDrawing else False
+def get_allocated_products() -> List[List[Dict[str, Any]]]:
+    """
+    Retrieve and organize all allocated products.
 
-def allocated() -> list[list[dict]]:
-    allocatedFinal = []
-    aFinal = []
-    # DABC website has an Allocated Items category
-    allocatedItems= submit_dabc_query(category='LA', status='')
-    aList = handle_product_request(allocatedItems)
-    for item in aList:
-        if in_store(item):
-            storeList = scrape_store_location(allocatedItems, item.get('sku'))
-            if storeList: 
-                aFinal.append(item)
+    :return: List of lists where each inner list contains up to 10 products
+    """
+    allocated_products = []
+    final_allocated = []
 
+    # Direct from 'LA' category
+    allocated_items = submit_dabc_query('LA', '')
+    for item in handle_product_response(allocated_items):
+        if is_product_in_store(item):
+            final_allocated.append(item)
 
-    # Append Allocated Items from CATEGORIES
-    for category in CATEGORIES:
-        allocatedReq = submit_dabc_query(category=category, status='A')
-        allocatedList = handle_product_request(allocatedReq)
-        for item in allocatedList:
-            if in_store(item):
-                storeList = scrape_store_location(allocatedReq, item.get('sku'))
-                if storeList:
-                    allocatedFinal.append(item)
+    # From specified categories with 'A' status
+    for cat in CATEGORIES.keys():
+        products = handle_product_response(submit_dabc_query(cat, 'A'))
+        allocated_products.extend([p for p in products if is_product_in_store(p)])
 
-    completeList = allocatedFinal + aFinal
-    completeList.sort(key=itemgetter('name'))
+    all_allocated = sorted(allocated_products + final_allocated, key=itemgetter('name'))
+    return [all_allocated[i:i+10] for i in range(0, len(all_allocated), 10)]
 
-    return [completeList[i:i+10] for i in range(0, len(completeList), 10)]
+def get_limited_products() -> List[List[Dict[str, Any]]]:
+    """
+    Retrieve and organize all limited products.
 
-def limited() -> list[list[dict]]:
-    limitedFinal = []
-    loFinal = []
-    # DABC website has a category for Limited Offers
-    limitedOffers = submit_dabc_query(category='LT', status='')
-    loList = handle_product_request(limitedOffers)
-    for item in loList:
-        if in_store(item):
-            storeList = scrape_store_location(limitedOffers, item.get('sku'))
-            if storeList: 
-                loFinal.append(item)
+    :return: List of lists where each inner list contains up to 10 products
+    """
+    limited_products = []
+    final_limited = []
 
-    # Append Limited Items from CATEGORIES
-    for category in CATEGORIES:
-        limitedReq = submit_dabc_query(category=category, status='L')
-        limitedList = handle_product_request(limitedReq)
-        for item in limitedList:
-            if in_store(item):
-                storeList = scrape_store_location(limitedReq, item.get('sku'))
-                if storeList:
-                    limitedFinal.append(item)
+    # Direct from 'LT' category
+    limited_offers = submit_dabc_query('LT', '')
+    for item in handle_product_response(limited_offers):
+        if is_product_in_store(item):
+            final_limited.append(item)
 
-    limitedComplete = limitedFinal + loFinal
-    limitedComplete.sort(key=itemgetter('name'))
+    # From specified categories with 'L' status
+    for cat in CATEGORIES.keys():
+        products = handle_product_response(submit_dabc_query(cat, 'L'))
+        limited_products.extend([p for p in products if is_product_in_store(p)])
 
-    return [limitedComplete[i:i+10] for i in range(0, len(limitedComplete), 10)]
+    all_limited = sorted(limited_products + final_limited, key=itemgetter('name'))
+    return [all_limited[i:i+10] for i in range(0, len(all_limited), 10)]
 
-def dabc_drawings() -> list[Embeds]:
-    if is_drawings():
-        return [Embeds.from_drawings()]
+def generate_drawing_embeds() -> List[Embed]:
+    """Generate embeds if there are drawings."""
+    if check_for_drawings():
+        return [Embed.from_drawings()]
     return []
 
-def from_productList_to_Embeds(productList: list[dict], color: str) -> list[Embeds]:
-    embedList = []
-    for product in productList:
-        embedList.append(Embeds.from_product(product, color))
-    return embedList
+def products_to_embeds(products: List[Dict[str, Any]], color: str) -> List[Embed]:
+    """Convert a list of products to Discord Embeds."""
+    return [Embed.from_product(product, color) for product in products]
 
-def scrape_store_location(dabcReq: requests, sku: str) -> list[dict]:
-    url= f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}'
-    skuReq = requests.get(url, cookies=dabcReq.cookies, headers=dabcReq.headers)
-    skuReq.raise_for_status()
+def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[str, str]]:
+    """
+    Scrape store locations for a given SKU.
 
-    storeReq = requests.get(skuReq.text, cookies=skuReq.cookies, headers=skuReq.headers)
-    storeReq.raise_for_status()
+    :param response: Response object containing cookies for the request
+    :param sku: Product SKU to search for
+    :return: List of dictionaries containing store information
+    """
+    detail_url = f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}'
+    sku_response = requests.get(detail_url, cookies=response.cookies, headers=response.headers)
+    sku_response.raise_for_status()
 
-    soup = BeautifulSoup(storeReq.text, 'html.parser')
-    gdp = soup.find_all('table', id = 'storeTable')
-    table1 = gdp[0]
-    body = table1.find_all("tr")
-    body_rows = body[1:]
+    store_url = sku_response.text
+    store_response = requests.get(store_url, cookies=sku_response.cookies, headers=sku_response.headers)
+    store_response.raise_for_status()
 
-    headings = ('store','name','address','city','phone','store qty','pin')
+    soup = BeautifulSoup(store_response.text, 'html.parser')
+    table = soup.find('table', id='storeTable')
+    rows = table.find_all('tr')[1:] if table else []
+    
+    headings = ('store', 'name', 'address', 'city', 'phone', 'store qty', 'pin')
+    stores = []
+    for row in rows:
+        row_data = [re.sub(r"(\xa0)|(\n)|,", "", td.text) for td in row.find_all('td')]
+        store_dict = dict(zip(headings, row_data))
+        if not is_club_store(store_dict):
+            stores.append({
+                "name": store_dict['name'][:16],
+                "city": store_dict['city'][:16],
+                "store qty": store_dict['store qty'][:16],
+                "address": store_dict['address'][:16],
+            })
+    return stores
 
-    storeList = []
-    for row_num in range(len(body_rows)):
-        row = []
-        for row_item in body_rows[row_num].find_all("td"):
-            aa = re.sub("(\xa0)|(\n)|,","",row_item.text)
-            row.append(aa)
-        createDict = dict(zip(headings, row))
-        storeDict = handle_store_dict(createDict)
-
-        if not isClubStore(storeDict):
-            storeList.append(storeDict)
-
-    return storeList
-
-def handle_store_dict(store: dict) -> dict:
-    return dict({
-            "name": store.get('name'),
-            "city": store.get('city')[:16],
-            "store qty": store.get('store qty')[:16],
-            "address": store.get('address')[:16],
-        })
-
-def isClubStore(store: dict) -> bool:
-    if '(Club' in store.get('name'):
-        return True
-    return False
+def is_club_store(store: Dict[str, str]) -> bool:
+    """Check if the store is a club store."""
+    return '(Club' in store.get('name', '')
 
 if __name__ == "__main__":
     pass

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from os import environ as env
-from typing import List, ClassVar
+from typing import List
 import random
 import json
 import requests
@@ -41,15 +41,6 @@ class Embed:
             fields=[]
         )
 
-    @classmethod
-    def from_pdf_list(cls, product: dict, color: str) -> 'Embed':
-        return cls(
-            color=color,
-            url=None,
-            title=product.get('Item Name'),
-            fields=[]
-        )
-
 @dataclass
 class DiscordWebhook:
     username: str
@@ -61,7 +52,7 @@ def generate_random_color() -> str:
     r = random.randint(0, 255)
     g = random.randint(0, 255)
     b = random.randint(0, 255)
-    return '{:06x}'.format((r << 16) | (g << 8) | b)
+    return str((r * 256 * 256) + (g * 256) + b)
 
 def send_discord_message(type: str, embed_list: List[Embed]) -> None:
     """Send a message to Discord using the specified webhook."""

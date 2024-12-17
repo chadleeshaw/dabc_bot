@@ -45,7 +45,8 @@ def is_unwanted_product(product: Dict[str, Any]) -> bool:
     :return: True if the product is unwanted, False otherwise
     """
     unwanted = ['SCOTCH', 'WINE', 'BEER']
-    return any(unwanted_item in product.get('name', '').upper() or unwanted_item in product.get('displayGroup', '').upper() for unwanted_item in unwanted)
+    return any(unwanted_item in product.get('name', '').upper() or 
+            unwanted_item in product.get('displayGroup', '').upper() for unwanted_item in unwanted)
 
 def handle_product_response(response: requests.Response) -> List[Dict[str, Any]]:
     """

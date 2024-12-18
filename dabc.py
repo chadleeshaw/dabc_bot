@@ -172,7 +172,7 @@ def check_for_drawings() -> bool:
 
 def get_allocated_products() -> List[List[Dict[str, Any]]]:
     """
-    Retrieve and organize all allocated products.
+    Retrieve and organize all allocated products, ensuring single-store SKUs aren't from club stores.
 
     :return: List of lists where each inner list contains up to 10 products
     """
@@ -183,19 +183,25 @@ def get_allocated_products() -> List[List[Dict[str, Any]]]:
     allocated_items = submit_dabc_query('LA', '')
     for item in handle_product_response(allocated_items):
         if is_product_in_store(item):
-            final_allocated.append(item)
+            stores = scrape_store_locations(allocated_items, item.get('sku', ''))
+            if len(stores) > 0:
+                final_allocated.append(item)
 
     # From specified categories with 'A' status
     for cat in CATEGORIES.keys():
         products = handle_product_response(submit_dabc_query(cat, 'A'))
-        allocated_products.extend([p for p in products if is_product_in_store(p)])
+        for product in products:
+            if is_product_in_store(product):
+                stores = scrape_store_locations(allocated_items, product.get('sku', ''))
+                if len(stores) > 0:
+                    allocated_products.append(product)
 
     all_allocated = sorted(allocated_products + final_allocated, key=itemgetter('name'))
     return [all_allocated[i:i+10] for i in range(0, len(all_allocated), 10)]
 
 def get_limited_products() -> List[List[Dict[str, Any]]]:
     """
-    Retrieve and organize all limited products.
+    Retrieve and organize all limited products, ensuring single-store SKUs aren't from club stores.
 
     :return: List of lists where each inner list contains up to 10 products
     """
@@ -206,12 +212,18 @@ def get_limited_products() -> List[List[Dict[str, Any]]]:
     limited_offers = submit_dabc_query('LT', '')
     for item in handle_product_response(limited_offers):
         if is_product_in_store(item):
-            final_limited.append(item)
+            stores = scrape_store_locations(limited_offers, item.get('sku', ''))
+            if len(stores) >0:
+                final_limited.append(item)
 
     # From specified categories with 'L' status
     for cat in CATEGORIES.keys():
         products = handle_product_response(submit_dabc_query(cat, 'L'))
-        limited_products.extend([p for p in products if is_product_in_store(p)])
+        for product in products:
+            if is_product_in_store(product):
+                stores = scrape_store_locations(limited_offers, product.get('sku', ''))
+                if len(stores) > 0:
+                    limited_products.append(product)
 
     all_limited = sorted(limited_products + final_limited, key=itemgetter('name'))
     return [all_limited[i:i+10] for i in range(0, len(all_limited), 10)]

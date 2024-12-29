@@ -54,16 +54,29 @@ def generate_random_color() -> str:
     b = random.randint(0, 255)
     return str((r * 256 * 256) + (g * 256) + b)
 
-def send_discord_message(type: str, embed_list: List[Embed]) -> None:
+def send_discord_embeds(type: str, embed_list: List[Embed]) -> None:
+    """Package a list of embeds into a DiscordWebhook and send"""
+    message = DiscordWebhook(
+        username=type.title(),
+        content='',
+        embeds=embed_list,
+    )
+    send_discord_message(message)
+
+
+def send_discord_content(type: str, content: str) -> None:
+    """Package str into a DiscordWebhook and send"""
+    message = DiscordWebhook(
+        username=type.title(),
+        content=f'```\n{content}\n```',
+        embeds=[],
+    )
+    send_discord_message(message)
+
+def send_discord_message(discord_message: DiscordWebhook) -> None:
     """Send a message to Discord using the specified webhook."""
     logger = my_logger(__name__)
     webhook_url = env.get(f"{type.upper()}_HOOK", "")
-
-    discord_message = DiscordWebhook(
-        username=type.title(),
-        content='',
-        embeds=embed_list
-    )
 
     discord_json = json.dumps(asdict(discord_message))
 

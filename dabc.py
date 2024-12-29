@@ -1,3 +1,4 @@
+from table2ascii import table2ascii, Alignment
 from typing import List, Dict, Any
 from bs4 import BeautifulSoup
 from discord import Embed
@@ -214,6 +215,7 @@ def get_limited_products() -> List[List[Dict[str, Any]]]:
         if is_product_in_store(item):
             stores = scrape_store_locations(limited_offers, item.get('sku', ''))
             if len(stores) >0:
+                item['category'] = item.get('displayGroup', 'N/A').title()
                 final_limited.append(item)
 
     # From specified categories with 'L' status
@@ -223,9 +225,10 @@ def get_limited_products() -> List[List[Dict[str, Any]]]:
             if is_product_in_store(product):
                 stores = scrape_store_locations(limited_offers, product.get('sku', ''))
                 if len(stores) > 0:
+                    product['category'] = CATEGORIES.get(cat)
                     limited_products.append(product)
 
-    all_limited = sorted(limited_products + final_limited, key=itemgetter('name'))
+    all_limited = sorted(limited_products + final_limited, key=itemgetter('category'))
     return [all_limited[i:i+10] for i in range(0, len(all_limited), 10)]
 
 def generate_drawing_embeds() -> List[Embed]:
@@ -237,6 +240,27 @@ def generate_drawing_embeds() -> List[Embed]:
 def products_to_embeds(products: List[Dict[str, Any]], color: str) -> List[Embed]:
     """Convert a list of products to Discord Embeds."""
     return [Embed.from_product(product, color) for product in products]
+
+
+
+def products_to_ascii_table(products: List[List [Dict[str, Any]]]) -> str:
+    """Convert a list of products to an ASCII table string."""
+    
+    headers = ['Name', 'Price', 'StoreQty', 'Category']
+    
+    keys = ['name', 'currentPrice', 'storeQty', 'category']
+    
+    body = [
+        [product.get(key, 'N/A') for key in keys] 
+        for product_list in products 
+        for product in product_list
+    ]
+    
+    return table2ascii(
+        header=headers,
+        body=body,
+        alignments=Alignment.LEFT,
+    )
 
 def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[str, str]]:
     """

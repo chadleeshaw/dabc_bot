@@ -1,6 +1,6 @@
 from unicodedata import category
-from dabc import get_allocated_products, get_limited_products, products_to_embeds, generate_drawing_embeds
-from discord import send_discord_message, generate_random_color
+from dabc import get_allocated_products, get_limited_products, products_to_ascii_table, products_to_embeds, generate_drawing_embeds
+from discord import generate_random_color, send_discord_content, send_discord_embeds
 import schedule
 import argparse
 import os
@@ -29,7 +29,7 @@ def post_allocated_items():
     color = generate_random_color()
     for batch in get_allocated_products():
         embeds = products_to_embeds(batch, color)
-        send_discord_message('Allocated', embeds)
+        send_discord_embeds('Allocated', embeds)
 
 def post_limited_items():
     """
@@ -37,8 +37,8 @@ def post_limited_items():
     """
     color = generate_random_color()
     for batch in get_limited_products():
-        embeds = products_to_embeds(batch, color)
-        send_discord_message('Limited', embeds)
+        table = products_to_ascii_table(batch, color)
+        send_discord_content('Limited', table)
 
 def post_drawings():
     """
@@ -46,7 +46,7 @@ def post_drawings():
     """
     drawings = generate_drawing_embeds()
     if drawings:
-        send_discord_message('Drawings', drawings)
+        send_discord_embeds('Drawings', drawings)
     else:
         logger.info("No Drawings today")
 

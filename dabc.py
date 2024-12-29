@@ -1,4 +1,5 @@
-from table2ascii import table2ascii, Alignment
+from table2ascii import table2ascii, Alignment, PresetStyle
+from collections import defaultdict
 from typing import List, Dict, Any
 from bs4 import BeautifulSoup
 from discord import Embed
@@ -241,26 +242,59 @@ def products_to_embeds(products: List[Dict[str, Any]], color: str) -> List[Embed
     """Convert a list of products to Discord Embeds."""
     return [Embed.from_product(product, color) for product in products]
 
+def products_to_embeds_tables(tables: List[Dict[str, Any]], color: str) -> List[Embed]:
+    """Convert a list of products to Discord Embeds."""
+    return [Embed.from_product_description(table, color) for table in tables]
 
-
-def products_to_ascii_table(products: List[List [Dict[str, Any]]]) -> str:
-    """Convert a list of products to an ASCII table string."""
+def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
+    """Convert lists of products to compact ASCII tables, one or more for each category, with max length of 4096 characters."""
     
     headers = ['Name', 'Price', 'StoreQty', 'Category']
-    
     keys = ['name', 'currentPrice', 'storeQty', 'category']
     
-    body = [
-        [product.get(key, 'N/A') for key in keys] 
-        for product_list in products 
-        for product in product_list
-    ]
-    
-    return table2ascii(
-        header=headers,
-        body=body,
-        alignments=Alignment.LEFT,
-    )
+    MAX_LENGTH = 4096
+
+    def generate_table(body, category):
+        return table2ascii(
+            header=headers,
+            body=body,
+            style=PresetStyle.ascii_compact,
+            cell_padding=1,
+            alignments=Alignment.LEFT,
+        )
+
+    category_products = defaultdict(list)
+    for product_list in products:
+        for product in product_list:
+            category = product.get('category', 'N/A')
+            category_products[category].append(product)
+
+    tables = []
+    for category, products_in_category in category_products.items():
+        table_body = []
+        current_table = ""
+        
+        for product in products_in_category:
+            row = [product.get(key, 'N/A') for key in keys]
+            table_body.append(row)
+            temp_table = generate_table(table_body, category)
+            temp_table_with_header = temp_table
+            
+            if len(temp_table_with_header) > MAX_LENGTH:
+                # If adding this product makes the table too long, we finalize the current table
+                if current_table:
+                    tables.append(current_table)
+                # Start a new table with just this product
+                table_body = [row]
+                current_table = generate_table(table_body, category)
+            else:
+                current_table = temp_table_with_header
+        
+        # Append the last table for this category
+        if current_table:
+            tables.append(current_table)
+
+    return tables
 
 def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[str, str]]:
     """

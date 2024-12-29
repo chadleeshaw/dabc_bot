@@ -1,6 +1,5 @@
-from unicodedata import category
-from dabc import get_allocated_products, get_limited_products, products_to_ascii_table, products_to_embeds, generate_drawing_embeds
-from discord import generate_random_color, send_discord_content, send_discord_embeds
+from dabc import get_allocated_products, get_limited_products, generate_ascii_tables, products_to_embeds, generate_drawing_embeds, products_to_embeds_tables
+from discord import generate_random_color, send_discord_message
 import schedule
 import argparse
 import os
@@ -29,14 +28,17 @@ def post_allocated_items():
     color = generate_random_color()
     for batch in get_allocated_products():
         embeds = products_to_embeds(batch, color)
-        send_discord_embeds('Allocated', embeds)
+        send_discord_message('Allocated', embeds)
 
 def post_limited_items():
     """
     Post limited items to Discord with random color embeds.
     """
-    table = products_to_ascii_table(get_limited_products())
-    send_discord_content('Limited', table)
+    color = generate_random_color()
+    tables = generate_ascii_tables(get_limited_products())
+    for table in tables:
+        embeds = products_to_embeds_tables(table, color)
+        send_discord_message('Limited', embeds)
 
 def post_drawings():
     """
@@ -44,7 +46,7 @@ def post_drawings():
     """
     drawings = generate_drawing_embeds()
     if drawings:
-        send_discord_embeds('Drawings', drawings)
+        send_discord_message('Drawings', drawings)
     else:
         logger.info("No Drawings today")
 

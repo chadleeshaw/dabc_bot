@@ -17,6 +17,7 @@ class Embed:
     color: str
     url: str
     title: str
+    description: str
     fields: List[Field]
 
     @classmethod
@@ -30,6 +31,13 @@ class Embed:
                 Field(name='Price:', value=str(product.get('currentPrice')), inline=True),
                 Field(name='StoreQty:', value=str(product.get('storeQty')), inline=True)
             ]
+        )
+    
+    @classmethod
+    def from_product_description(cls, description: str, color: str = '15838749') -> 'Embed':
+        return cls(
+            color=color,
+            description=f"```{description}```",
         )
 
     @classmethod
@@ -54,29 +62,16 @@ def generate_random_color() -> str:
     b = random.randint(0, 255)
     return str((r * 256 * 256) + (g * 256) + b)
 
-def send_discord_embeds(type: str, embed_list: List[Embed]) -> None:
-    """Package a list of embeds into a DiscordWebhook and send"""
-    message = DiscordWebhook(
+def send_discord_message(type: str, embed_list: List[Embed]) -> None:
+    """Send a message to Discord using the specified webhook."""
+    logger = my_logger(__name__)
+    webhook_url = env.get(f"{type.upper()}_HOOK", "")
+
+    discord_message = DiscordWebhook(
         username=type.title(),
         content='',
         embeds=embed_list,
     )
-    send_discord_message(type, message)
-
-
-def send_discord_content(type: str, content: str) -> None:
-    """Package str into a DiscordWebhook and send"""
-    message = DiscordWebhook(
-        username=type.title(),
-        content=f'```\n{content}\n```',
-        embeds=[],
-    )
-    send_discord_message(type, message)
-
-def send_discord_message(type: str, discord_message: DiscordWebhook) -> None:
-    """Send a message to Discord using the specified webhook."""
-    logger = my_logger(__name__)
-    webhook_url = env.get(f"{type.upper()}_HOOK", "")
 
     discord_json = json.dumps(asdict(discord_message))
 

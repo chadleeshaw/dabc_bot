@@ -35,10 +35,8 @@ def post_limited_items():
     """
     Post limited items to Discord with random color embeds.
     """
-    color = generate_random_color()
-    for batch in get_limited_products():
-        table = products_to_ascii_table(batch, color)
-        send_discord_content('Limited', table)
+    table = products_to_ascii_table(get_limited_products())
+    send_discord_content('Limited', table)
 
 def post_drawings():
     """

@@ -61,7 +61,7 @@ def send_discord_embeds(type: str, embed_list: List[Embed]) -> None:
         content='',
         embeds=embed_list,
     )
-    send_discord_message(message)
+    send_discord_message(type, message)
 
 
 def send_discord_content(type: str, content: str) -> None:
@@ -71,9 +71,9 @@ def send_discord_content(type: str, content: str) -> None:
         content=f'```\n{content}\n```',
         embeds=[],
     )
-    send_discord_message(message)
+    send_discord_message(type, message)
 
-def send_discord_message(discord_message: DiscordWebhook) -> None:
+def send_discord_message(type: str, discord_message: DiscordWebhook) -> None:
     """Send a message to Discord using the specified webhook."""
     logger = my_logger(__name__)
     webhook_url = env.get(f"{type.upper()}_HOOK", "")

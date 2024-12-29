@@ -27,9 +27,10 @@ class Embed:
             color=color,
             url=f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}',
             title=product.get('name'),
+            description='',
             fields=[
                 Field(name='Price:', value=str(product.get('currentPrice')), inline=True),
-                Field(name='StoreQty:', value=str(product.get('storeQty')), inline=True)
+                Field(name='StoreQty:', value=str(product.get('storeQty')), inline=True),
             ]
         )
     
@@ -37,7 +38,10 @@ class Embed:
     def from_product_description(cls, description: str, color: str = '15838749') -> 'Embed':
         return cls(
             color=color,
+            url='',
+            title='',
             description=f"```{description}```",
+            fields=[]
         )
 
     @classmethod
@@ -46,6 +50,7 @@ class Embed:
             color=color,
             url='https://webapps2.abc.utah.gov/ProdApps/RareHighDemandProducts',
             title='Drawing(s) Detected on DABC Website',
+            description='',
             fields=[]
         )
 

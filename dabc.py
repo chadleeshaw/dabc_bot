@@ -249,17 +249,17 @@ def products_to_embeds_tables(table: str, color: str) -> List[Embed]:
 def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
     """Convert lists of products to compact ASCII tables, one or more for each category, with max length of 4096 characters."""
     
-    headers = ['Name', 'Price', 'StoreQty', 'Category']
-    keys = ['name', 'currentPrice', 'storeQty', 'category']
+    headers = [product.get('category'), 'Price', 'StoreQty']
+    keys = ['name', 'currentPrice', 'storeQty']
     
     MAX_LENGTH = 4096
 
-    def generate_table(body, category):
+    def generate_table(body):
         return table2ascii(
             header=headers,
             body=body,
-            style=PresetStyle.ascii_compact,
-            cell_padding=1,
+            style=PresetStyle.plain,
+            cell_padding=0,
             alignments=Alignment.LEFT,
         )
 
@@ -277,7 +277,7 @@ def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
         for product in products_in_category:
             row = [product.get(key, 'N/A') for key in keys]
             table_body.append(row)
-            temp_table = generate_table(table_body, category)
+            temp_table = generate_table(table_body)
             temp_table_with_header = temp_table
             
             if len(temp_table_with_header) > MAX_LENGTH:

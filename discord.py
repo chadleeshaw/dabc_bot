@@ -40,7 +40,7 @@ class Embed:
             color=color,
             url='',
             title='',
-            description=f"```{description}```",
+            description=f'```{description}```',
             fields=[]
         )
 

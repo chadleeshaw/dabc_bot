@@ -242,9 +242,9 @@ def products_to_embeds(products: List[Dict[str, Any]], color: str) -> List[Embed
     """Convert a list of products to Discord Embeds."""
     return [Embed.from_product(product, color) for product in products]
 
-def products_to_embeds_tables(tables: List[Dict[str, Any]], color: str) -> List[Embed]:
+def products_to_embeds_tables(table: str, color: str) -> List[Embed]:
     """Convert a list of products to Discord Embeds."""
-    return [Embed.from_product_description(table, color) for table in tables]
+    return [Embed.from_product_description(table, color)]
 
 def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
     """Convert lists of products to compact ASCII tables, one or more for each category, with max length of 4096 characters."""

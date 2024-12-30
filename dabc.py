@@ -255,7 +255,7 @@ def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
 
     def generate_table(body: str, product: dict):
         return table2ascii(
-            header=[product.get('category', 'Name'), 'Price', 'StoreQty'],
+            header=[product.get('category', 'Name'), 'Price', 'Qty'],
             body=body,
             style=PresetStyle.plain,
             cell_padding=0,

@@ -19,6 +19,7 @@ class Embed:
     title: str
     description: str
     fields: List[Field]
+    inline: bool
 
     @classmethod
     def from_product(cls, product: dict, color: str = '15838749') -> 'Embed':
@@ -40,7 +41,7 @@ class Embed:
             color=color,
             url='',
             title='',
-            description=f'```{description}```',
+            description=f'```\n{description}\n```',
             fields=[]
         )
 

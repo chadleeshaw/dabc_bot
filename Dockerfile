@@ -5,7 +5,7 @@ WORKDIR /opt/bot
 
 COPY *.py requirements.txt ./
 
-RUN apt-get update && apt-get upgrade
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install -r requirements.txt
 

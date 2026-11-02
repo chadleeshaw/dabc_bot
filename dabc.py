@@ -1,12 +1,14 @@
-from table2ascii import table2ascii, Alignment, PresetStyle
-from collections import defaultdict
-from typing import List, Dict, Any
-from bs4 import BeautifulSoup
-from discord import Embed
-import requests
 import re
 import urllib.parse
+from collections import defaultdict
 from operator import itemgetter
+from typing import Any
+
+import requests
+from bs4 import BeautifulSoup  # type: ignore[import-not-found]
+from table2ascii import Alignment, PresetStyle, table2ascii  # type: ignore[import-not-found]
+
+from discord import Embed
 from logs import my_logger
 
 logger = my_logger(__name__)
@@ -17,7 +19,7 @@ CATEGORIES = {
     'AP': 'Tequila',  # Tequila
 }
 
-def dabc_request(method: str, url: str, data: str = None) -> requests.Response:
+def dabc_request(method: str, url: str, data: str = '') -> requests.Response:
     """
     Send a request to DABC with specified method, URL, and data.
 
@@ -30,7 +32,7 @@ def dabc_request(method: str, url: str, data: str = None) -> requests.Response:
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
     }
 
-    response = requests.request(method, url, headers=headers, data=data)
+    response = requests.request(method, url, headers=headers, data=data, timeout=30)
     
     try:
         response.raise_for_status()
@@ -39,7 +41,7 @@ def dabc_request(method: str, url: str, data: str = None) -> requests.Response:
     
     return response
 
-def is_unwanted_product(product: Dict[str, Any]) -> bool:
+def is_unwanted_product(product: dict[str, Any]) -> bool:
     """
     Check if the product should be skipped based on unwanted categories.
 
@@ -50,7 +52,7 @@ def is_unwanted_product(product: Dict[str, Any]) -> bool:
     return any(unwanted_item in product.get('name', '').upper() or 
             unwanted_item in product.get('displayGroup', '').upper() for unwanted_item in unwanted)
 
-def handle_product_response(response: requests.Response) -> List[Dict[str, Any]]:
+def handle_product_response(response: requests.Response) -> list[dict[str, Any]]:
     """
     Process the DABC response and filter out unwanted products.
 
@@ -154,7 +156,7 @@ def submit_dabc_query(category: str, status: str = '') -> requests.Response:
     # Make the request with the encoded body
     return dabc_request('POST', base_url, encoded_body)
 
-def is_product_in_store(product: Dict[str, Any]) -> bool:
+def is_product_in_store(product: dict[str, Any]) -> bool:
     """Check if the product is available in-store."""
     return product.get('storeQty', 0) > 0
 
@@ -172,7 +174,7 @@ def check_for_drawings() -> bool:
 
     return 'No Future' not in str(future) or 'No Current' not in str(current)
 
-def get_allocated_products() -> List[List[Dict[str, Any]]]:
+def get_allocated_products() -> list[list[dict[str, Any]]]:
     """
     Retrieve and organize all allocated products, ensuring single-store SKUs aren't from club stores.
 
@@ -191,17 +193,18 @@ def get_allocated_products() -> List[List[Dict[str, Any]]]:
 
     # From specified categories with 'A' status
     for cat in CATEGORIES.keys():
-        products = handle_product_response(submit_dabc_query(cat, 'A'))
+        cat_response = submit_dabc_query(cat, 'A')
+        products = handle_product_response(cat_response)
         for product in products:
             if is_product_in_store(product):
-                stores = scrape_store_locations(allocated_items, product.get('sku', ''))
+                stores = scrape_store_locations(cat_response, product.get('sku', ''))
                 if len(stores) > 0:
                     allocated_products.append(product)
 
     all_allocated = sorted(allocated_products + final_allocated, key=itemgetter('name'))
     return [all_allocated[i:i+10] for i in range(0, len(all_allocated), 10)]
 
-def get_limited_products() -> List[List[Dict[str, Any]]]:
+def get_limited_products() -> list[list[dict[str, Any]]]:
     """
     Retrieve and organize all limited products, ensuring single-store SKUs aren't from club stores.
 
@@ -221,10 +224,11 @@ def get_limited_products() -> List[List[Dict[str, Any]]]:
 
     # From specified categories with 'L' status
     for cat in CATEGORIES.keys():
-        products = handle_product_response(submit_dabc_query(cat, 'L'))
+        cat_response = submit_dabc_query(cat, 'L')
+        products = handle_product_response(cat_response)
         for product in products:
             if is_product_in_store(product):
-                stores = scrape_store_locations(limited_offers, product.get('sku', ''))
+                stores = scrape_store_locations(cat_response, product.get('sku', ''))
                 if len(stores) > 0:
                     product['category'] = CATEGORIES.get(cat)
                     limited_products.append(product)
@@ -232,28 +236,28 @@ def get_limited_products() -> List[List[Dict[str, Any]]]:
     all_limited = sorted(limited_products + final_limited, key=itemgetter('category'))
     return [all_limited[i:i+10] for i in range(0, len(all_limited), 10)]
 
-def generate_drawing_embeds() -> List[Embed]:
+def generate_drawing_embeds() -> list[Embed]:
     """Generate embeds if there are drawings."""
     if check_for_drawings():
         return [Embed.from_drawings()]
     return []
 
-def products_to_embeds(products: List[Dict[str, Any]], color: str) -> List[Embed]:
+def products_to_embeds(products: list[dict[str, Any]], color: str) -> list[Embed]:
     """Convert a list of products to Discord Embeds."""
     return [Embed.from_product(product, color) for product in products]
 
-def products_to_embeds_tables(table: str, color: str) -> List[Embed]:
+def products_to_embeds_tables(table: str, color: str) -> list[Embed]:
     """Convert a list of products to Discord Embeds."""
     return [Embed.from_product_description(table, color)]
 
-def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
+def generate_ascii_tables(products: list[list[dict[str, Any]]]) -> list[str]:
     """Convert lists of products to compact ASCII tables, one or more for each category, with max length of 4096 characters."""
     
     keys = ['name', 'currentPrice', 'storeQty']
     
     MAX_LENGTH = 4096
 
-    def generate_table(body: str, product: dict):
+    def generate_table(body: Any, product: dict):
         return table2ascii(
             header=[product.get('category', 'Name'), 'Price', 'Qty'],
             body=body,
@@ -295,7 +299,7 @@ def generate_ascii_tables(products: List[List[Dict[str, Any]]]) -> List[str]:
 
     return tables
 
-def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[str, str]]:
+def scrape_store_locations(response: requests.Response, sku: str) -> list[dict[str, str]]:
     """
     Scrape store locations for a given SKU.
 
@@ -304,11 +308,11 @@ def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[s
     :return: List of dictionaries containing store information
     """
     detail_url = f'https://webapps2.abc.utah.gov/ProdApps/ProductLocatorCore/Products/GetDetailUrl?sku={sku}'
-    sku_response = requests.get(detail_url, cookies=response.cookies, headers=response.headers)
+    sku_response = requests.get(detail_url, cookies=response.cookies, headers=response.headers, timeout=30)
     sku_response.raise_for_status()
 
     store_url = sku_response.text
-    store_response = requests.get(store_url, cookies=sku_response.cookies, headers=sku_response.headers)
+    store_response = requests.get(store_url, cookies=sku_response.cookies, headers=sku_response.headers, timeout=30)
     store_response.raise_for_status()
 
     soup = BeautifulSoup(store_response.text, 'html.parser')
@@ -329,7 +333,7 @@ def scrape_store_locations(response: requests.Response, sku: str) -> List[Dict[s
             })
     return stores
 
-def is_club_store(store: Dict[str, str]) -> bool:
+def is_club_store(store: Any) -> bool:
     """Check if the store is a club store."""
     return '(Club' in store.get('name', '')
 
